@@ -41,7 +41,7 @@ The Linux playbook automates Docker or Podman installation, container deployment
   - Copying `.exe` installer to the target
   - Installing via silent command with custom tags and SSL options
 
-- `vars.yaml`: Configuration variables such as:
+- `variables.yaml`: Configuration variables such as:
   - CloudLens Manager address
   - Registry type (`secure` or `insecure`)
   - Project key and custom tags
