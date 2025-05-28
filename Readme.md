@@ -160,6 +160,38 @@ cloudlens_installer_filename: "cloudlens-win-sensor.exe"
 ---
 
 
+## Deployment Commands
+
+### Ubuntu Linux Deployment
+```bash
+ansible-playbook -i inventory.ini ubuntu.yaml
+```
+
+### RHEL/CentOS Deployment
+```bash
+ansible-playbook -i inventory.ini redhat.yaml
+```
+
+### Windows Deployment
+```bash
+ansible-playbook -i inventory.ini windows.yaml
+```
+
+### Cleanup - Ubuntu
+```bash
+ansible-playbook -i inventory.ini ubuntu_cleanup.yaml
+```
+
+### Cleanup - RHEL/CentOS
+```bash
+ansible-playbook -i inventory.ini redhat_cleanup.yaml
+```
+
+### Cleanup - Windows
+```bash
+ansible-playbook -i inventory.ini windows_cleanup.yaml
+```
+
 ---
 
 ##  Ansible Logging Details

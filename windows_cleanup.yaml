@@ -32,8 +32,7 @@
         path: "C:\\temp\\{{ cloudlens_installer_filename }}"
         state: absent
 
-    # Optional cleanup (comment/uncomment as needed)
-    # - name: Delete entire C:\temp directory
-    #   win_file:
-    #     path: C:\temp
-    #     state: absent
+    - name: Delete CA cert from temp if present
+      win_file:
+        path: C:\temp\cloudlens_ca.crt
+        state: absent
