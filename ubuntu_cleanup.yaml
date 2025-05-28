@@ -1,0 +1,70 @@
+- name: Cleanup CloudLens Agent and Docker from Ubuntu VMs
+  hosts: all
+  become: yes
+  vars:
+    registry_type: "insecure"  # Change to "insecure" if applicable
+
+  tasks:
+    - name: Stop and remove CloudLens agent container if exists
+      ansible.builtin.shell: docker ps -aq -f name=cloudlens-agent | xargs -r docker rm -f
+      register: cloudlens_agent_removed
+      changed_when: cloudlens_agent_removed.rc == 0
+
+    - name: Remove CA certificate if exists
+      ansible.builtin.file:
+        path: /etc/ssl/certs/cloudlenscerts.crt
+        state: absent
+      when: registry_type == "secure"
+
+    - name: Remove Docker daemon configuration for insecure registry if exists
+      ansible.builtin.file:
+        path: /etc/docker/daemon.json
+        state: absent
+      when: registry_type == "insecure"
+
+    - name: Stop Docker service
+      ansible.builtin.systemd:
+        name: docker
+        state: stopped
+      ignore_errors: yes
+
+    - name: Remove Docker packages
+      ansible.builtin.apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+        state: absent
+      ignore_errors: yes
+
+    - name: Remove Docker repository entry
+      ansible.builtin.file:
+        path: /etc/apt/sources.list.d/docker.list
+        state: absent
+
+    - name: Delete Docker's GPG key
+      ansible.builtin.file:
+        path: /usr/share/keyrings/docker-archive-keyring.gpg
+        state: absent
+
+    - name: Remove prerequisites for Docker
+      ansible.builtin.apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
+        state: absent
+
+   
+
+    - name: Remove /etc/docker directory if exists
+      ansible.builtin.file:
+        path: /etc/docker
+        state: absent
+
+    - name: Remove CloudLens log directory
+      ansible.builtin.file:
+        path: /var/log/cloudlens
+        state: absent
+      ignore_errors: yes

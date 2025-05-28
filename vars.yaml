@@ -1,0 +1,9 @@
+cloudlens_manager_ip_or_FQDN: "20.12.10.80"
+project_key: "c09b143bedd64a7fb3f0b138a409ff66"
+custom_tags: "Env=Azure"
+local_ca_path: "/Users/brinketu/NewCerts/cloudlenscerts.crt" #Use full cert chain or local cert path
+registry_type: "secure" # "insecure" or "secure"
+ca_cert_dir: "/etc/ssl/certs" 
+cloudlens_agent_container_name: "cloudlens-agent"
+log_max_size: "50m"
+log_max_file: "5"

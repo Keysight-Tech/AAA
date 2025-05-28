@@ -1,0 +1,122 @@
+- name: Cleanup CloudLens Agent and Docker Environment
+  hosts: azure_vms
+  become: yes
+  vars:
+    cloudlens_manager_ip_or_FQDN: "172.210.78.63"
+    local_ca_path: "/tmp/ca-certificates.crt"
+    ca_cert_dir: ""
+    registry_type: "insecure"
+
+  tasks:
+    - name: Gather facts about the system
+      ansible.builtin.gather_facts:
+
+    - name: Set CA certificate directory based on Linux distribution
+      set_fact:
+        ca_cert_dir: "{% if ansible_distribution | lower == 'ubuntu' %}/etc/ssl/certs{% else %}/etc/pki/tls/certs{% endif %}"
+
+    - name: Stop and remove CloudLens agent container if it exists
+      shell: |
+        docker ps -aq -f name=cloudlens-agent | xargs -r docker rm -f
+      register: remove_cloudlens_agent
+      failed_when: false
+      changed_when: remove_cloudlens_agent.stdout != ""
+
+    - name: Remove Docker daemon configuration
+      file:
+        path: /etc/docker/daemon.json
+        state: absent
+
+    - name: Remove transferred CA certificate
+      file:
+        path: "{{ local_ca_path }}"
+        state: absent
+
+    - name: Remove installed CA certificates
+      block:
+        - name: Remove CA certificate for Ubuntu
+          file:
+            path: "{{ ca_cert_dir }}/ca-certificates.crt"
+            state: absent
+          when: ansible_distribution | lower == 'ubuntu'
+
+        - name: Update CA certificates on Ubuntu
+          command: update-ca-certificates --fresh
+          when: ansible_distribution | lower == 'ubuntu'
+
+        - name: Remove CA certificate for CentOS/RHEL
+          file:
+            path: "{{ ca_cert_dir }}/ca-certificates.crt"
+            state: absent
+          when: ansible_distribution | lower in ['centos', 'redhat']
+
+        - name: Update CA trust on CentOS/RHEL
+          command: update-ca-trust extract
+          when: ansible_distribution | lower in ['centos', 'redhat']
+      when: registry_type == "secure"
+
+    - name: Stop Docker service
+      systemd:
+        name: docker
+        state: stopped
+
+    - name: Disable Docker service
+      systemd:
+        name: docker
+        enabled: false
+
+    - name: Remove Docker packages
+      block:
+        - name: Remove Docker packages on Ubuntu
+          apt:
+            name:
+              - docker
+              - docker-engine
+              - docker.io
+              - containerd
+              - runc
+            state: absent
+            autoremove: yes
+            purge: yes
+          when: ansible_distribution | lower == "ubuntu"
+
+        - name: Remove Docker packages on CentOS/RHEL
+          yum:
+            name:
+              - docker
+              - docker-engine
+              - docker.io
+              - containerd
+              - runc
+            state: absent
+          when: ansible_distribution | lower in ["centos", "redhat"]
+
+    - name: Remove Docker directories
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /var/lib/docker
+        - /etc/docker
+        - /etc/systemd/system/docker.service.d
+        - /var/run/docker.sock
+        - /usr/share/keyrings/docker-archive-keyring.gpg
+        - /etc/apt/sources.list.d/docker.list
+
+    - name: Reload systemd manager configuration
+      shell: systemctl daemon-reload
+
+    - name: Verify Docker service file existence
+      stat:
+        path: /lib/systemd/system/docker.service
+      register: docker_service_stat
+
+    - name: Remove Docker service file if exists
+      file:
+        path: /lib/systemd/system/docker.service
+        state: absent
+      when: docker_service_stat.stat.exists
+
+    - name: Debug cleanup completion
+      debug:
+        msg: "Cleanup of CloudLens Agent and Docker environment is complete."
