@@ -1,0 +1,81 @@
+- name: Undo CloudLens Agent Deployment from Red Hat VMs with Podman
+  hosts: azure_vms
+  become: yes
+  vars_files:
+    - vars.yaml
+  vars:
+    podman_command: podman
+    ca_cert_dir: "/etc/pki/ca-trust/source/anchors"
+
+  tasks:
+    - name: Gather facts about the system
+      setup:
+
+    - name: Check if Podman is installed
+      ansible.builtin.command: command -v podman
+      register: podman_installed
+      failed_when: false
+      changed_when: false
+
+    - name: Stop and remove CloudLens Agent container (Podman)
+      ansible.builtin.shell: "{{ podman_command }} stop {{ cloudlens_agent_container_name }} && {{ podman_command }} rm -f {{ cloudlens_agent_container_name }}"
+      when: podman_installed.rc == 0
+      ignore_errors: yes
+
+    - name: Remove CloudLens sensor image (Podman)
+      ansible.builtin.shell: "{{ podman_command }} rmi {{ cloudlens_manager_ip_or_FQDN }}/sensor:latest"
+      when: podman_installed.rc == 0
+      ignore_errors: yes
+
+    - name: Remove Podman insecure registry configuration
+      ansible.builtin.file:
+        path: /etc/containers/registries.conf.d/cloudlens.conf
+        state: absent
+      when: registry_type == "insecure"
+
+    - name: Reload container registries configuration (Podman) - Undo
+      ansible.builtin.command: "systemctl restart podman.socket"
+      ignore_errors: yes
+      when: registry_type == "insecure"
+
+    - name: Remove CA certificate from VM (for secure registries)
+      ansible.builtin.file:
+        path: "{{ ca_cert_dir }}/cloudlenscerts.crt"
+        state: absent
+      when: registry_type == "secure"
+
+    - name: Update CA certificates on Red Hat (for secure registries) - Undo
+      ansible.builtin.command: update-ca-trust extract
+      become: yes
+      when: registry_type == "secure"
+
+    - name: Remove /var/log/cloudlens directory
+      ansible.builtin.file:
+        path: /var/log/cloudlens
+        state: absent
+
+    - name: Remove /var/tmp/cloudtap directory
+      ansible.builtin.file:
+        path: /var/tmp/cloudtap
+        state: absent
+
+    - name: Remove Podman on RHEL 8+
+      ansible.builtin.dnf:
+        name:
+          - podman
+        state: absent
+      when:
+        - ansible_os_family == 'RedHat'
+        - ansible_distribution_major_version | int >= 8
+        - podman_installed.rc == 0
+
+    - name: Remove Podman and container-tools on RHEL 7
+      ansible.builtin.yum:
+        name:
+          - podman
+          - container-tools
+        state: absent
+      when:
+        - ansible_os_family == 'RedHat'
+        - ansible_distribution_major_version | int < 8
+        - podman_installed.rc == 0
