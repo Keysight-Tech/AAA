@@ -4,7 +4,7 @@
 
 This repository provides Ansible playbooks to deploy the CloudLens Agent across various environments, including:
 
-- **Ubuntu/RHEL-based Linux virtual machines** (Azure VMs, AWS EC2, on-premise servers)
+- **Ubuntu/RHEL-based Linux virtual machines** (Azure VMs, AWS, GCP, VMWare, Oracle, on-premise servers)
 - **Windows virtual machines** (with WinRM and `.exe` installer support)
 
 The Linux playbook automates Docker or Podman installation, container deployment, and registry authentication. The Windows playbook installs or uninstalls the CloudLens Agent `.exe` package via silent install.
