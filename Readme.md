@@ -56,11 +56,40 @@ The Linux playbook automates Docker or Podman installation, container deployment
 
 ## Prerequisites
 
-### Common
-- **Ansible Control Node:**
-  - Ansible 2.9+ installed
-  - Python 3.8 (for Red Hat support) and Python 3.10 (for Ubuntu)
-  - SSH access to Linux targets / WinRM configured for Windows
+## Installing Ansible on Your Control Node
+
+### macOS
+```bash
+brew install ansible
+```
+
+### Ubuntu / Debian Linux
+```bash
+sudo apt update
+sudo apt install -y ansible
+```
+
+### RHEL / CentOS Linux
+```bash
+sudo yum install -y epel-release
+sudo yum install -y ansible
+```
+
+### Windows (via WSL or Virtual Environment)
+1. Install WSL (Windows Subsystem for Linux)
+2. Launch a WSL terminal (Ubuntu recommended)
+3. Run:
+```bash
+sudo apt update
+sudo apt install -y ansible
+```
+
+Alternatively, install Ansible via Python virtualenv:
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip install ansible==2.9.27
+```
 
 - **CloudLens Manager:**
   - Reachable from target VMs
