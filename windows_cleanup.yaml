@@ -1,0 +1,39 @@
+---
+- name: Uninstall CloudLens Agent from Windows VMs
+  hosts: windows
+  vars_files:
+    - vars.yaml
+
+  tasks:
+
+    - name: Check if CloudLens Agent is installed via registry
+      win_shell: |
+        $found = Get-ChildItem -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall" |
+          Where-Object {
+            ($_ | Get-ItemProperty).DisplayName -like "*CloudLens Agent*"
+          }
+        if ($found) {
+          $found | Select-Object -ExpandProperty PSChildName
+        }
+      register: cloudlens_installed
+      changed_when: false
+      ignore_errors: true
+
+    - name: Uninstall CloudLens Agent if found
+      win_shell: |
+        $app = Get-WmiObject -Class Win32_Product | Where-Object { $_.Name -like "*CloudLens Agent*" }
+        if ($app) {
+          $app.Uninstall() | Out-Null
+        }
+      when: cloudlens_installed.stdout != ""
+
+    - name: Delete CloudLens installer from C:\temp
+      win_file:
+        path: "C:\\temp\\{{ cloudlens_installer_filename }}"
+        state: absent
+
+    # Optional cleanup (comment/uncomment as needed)
+    # - name: Delete entire C:\temp directory
+    #   win_file:
+    #     path: C:\temp
+    #     state: absent

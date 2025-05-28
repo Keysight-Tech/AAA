@@ -2,45 +2,128 @@
 
 ## Overview
 
-This repository provides an Ansible playbook to deploy the CloudLens Agent across various environments, including Ubuntu virtual machines (e.g., Azure VMs, AWS EC2, on-premise servers). <light>The playbook automates Docker installation and configuration, along with the deployment of the CloudLens Agent container, supporting both secure and insecure container registries. </light>
+This repository provides Ansible playbooks to deploy the CloudLens Agent across Linux (Ubuntu) and Windows environments. For Linux, the playbook automates Docker installation and CloudLens container deployment. For Windows, it handles agent uninstallation (if previously installed), certificate management, and silent installation via the CloudLens executable. Also contain playbook to remove deployments and processes that was installed by cloudlens.
 
 ---
 
 ## Repository Contents
 
-- `main.yaml` - Primary Ansible playbook responsible for:
-    - Installing and configuring Docker if it's not already present.
-    - Configuring Docker daemon for secure or insecure private registries.
-    - Deploying the CloudLens Agent container with specified settings.
-- `vars.yml` - Variables file that defines customizable parameters such as:
-    - Docker package names to install.
-    - CloudLens Manager IP/FQDN for agent communication.
-    - Registry type (`secure` or `insecure`) and paths to related certificates.
-    - Project key, container names, custom tags, and logging options for the CloudLens Agent.
-- `inventory.ini` - Inventory file that lists the target VM hosts, grouped for easier management (e.g., `onprem_vms`, `azure_vms`, `aws_ec2`).
-- `README.md` - This comprehensive documentation file.
+- `main.yaml` – For Linux VMs:
+    - Installs and configures Docker.
+    - Configures Docker daemon for secure/insecure registries.
+    - Deploys the CloudLens Agent container.
+- `windows.yaml` – For Windows VMs:
+    - Ensures WinRM connectivity.
+    - Automatically uninstalls existing CloudLens agent (if found).
+    - Transfers and installs the CloudLens Windows executable.
+    - Supports SSL verification using custom CA certificates.
+- `vars.yaml` – Defines common variables:
+    - CloudLens Manager IP or FQDN.
+    - Project key.
+    - Registry type: `secure` or `insecure`.
+    - Local CA certificate path.
+    - Logging options.
+    - Windows installer paths and SSL settings.
+- `inventory.ini` – Inventory file to list target hosts, grouped logically (e.g., `windows`, `onprem_vms`, `azure_vms`).
+- `README.md` – This documentation.
 
 ---
 
 ## Prerequisites
 
-- **Ansible Control Machine:**  A machine with Ansible installed (version 2.9+ recommended). This machine will execute the playbook.
-- **Target VMs:**  Target virtual machines or servers running Ubuntu or other compatible Linux distributions. Ensure they have network connectivity.
-- **SSH Access:**  SSH access to the target VMs from the control machine, configured with passwordless `sudo` or appropriate privilege escalation to run Docker commands.
-- **Docker-Compatible Environment:**  A Docker-compatible container runtime environment on the target VMs (Docker, Containerd, etc.).
-- **Network Access:**  Network access from the target VMs to the CloudLens Manager server and the container registry where the CloudLens Agent image is stored.
+### General
+- **Ansible Control Machine**:
+  - Ansible installed (2.9+).
+- **Network Access**:
+  - VMs must access CloudLens Manager and registry.
+
+### For Linux VMs
+- **Target OS**:
+  - Ubuntu or similar.
+- **SSH Access**:
+  - Public key authentication with sudo rights.
+- **Docker Runtime**:
+  - Docker or compatible runtime pre-installed or installable.
+
+### For Windows VMs
+- **WinRM Enabled**:
+  - WinRM over HTTPS (port 5986) must be enabled.
+- **Firewall Rules**:
+  - Must allow inbound WinRM traffic.
+- **Admin Credentials**:
+  - Must use a user with admin rights.
+- **Disable NLA (optional)**:
+  - Temporarily disable Network Level Authentication for easier initial setup.
 
 ---
 
 ## Setup and Configuration
 
 ### 1. Inventory File (`inventory.ini`)
+Configure your hosts and group them appropriately.
 
-Create or modify your inventory file to list the target hosts. This file groups your servers for easier management.
+### 2. Dry Run (Syntax Check)
+```bash
+ansible-playbook -i inventory.ini main.yaml --syntax-check
+```
 
-Dry run:  ansible-playbook -i inventory.ini main.yaml --syntax-check  
+### 3. Python Interpreter Configuration (Linux)
+Refer to [Ansible Interpreter Discovery Guide](https://docs.ansible.com/ansible-core/2.18/reference_appendices/interpreter_discovery.html) to avoid interpreter warnings.
 
-## Ansible Python Interpreter
+### 4. Windows Deployment Considerations
 
-See [Ansible Interpreter Discovery Guide](https://docs.ansible.com/ansible-core/2.18/reference_appendices/interpreter_discovery.html) for why specifying `ansible_python_interpreter` can prevent unexpected behavior.  
-       Ignore warning when running playbook if using appropriate Directory for the python interpreter.
+#### ✅ Automatic Agent Cleanup
+- The Windows playbook automatically detects and removes any existing CloudLens installation.
+
+#### ✅ SSL Certificate Handling
+- If `ssl_verify` is set to `yes`:
+  - Your CA certificate (full chain) is uploaded to `C:\temp\cloudlens_ca.crt`
+  - It is imported into the Trusted Root Certification Authorities store to ensure secure TLS validation.
+
+#### ⚠️ Notes on SSL Verification
+- If the certificate is invalid, expired, or not trusted, the installer will fail to validate the CloudLens Manager server.
+- You **must** ensure your CA cert is up to date and properly chained.
+
+#### ✅ Silent Agent Installation
+- The playbook uses `/install /quiet` parameters with:
+  - `Server` – IP/FQDN of your CloudLens Manager
+  - `Project_Key` – Provided by your CloudLens setup
+  - `SSL_Verify`, `Auto_Update`, and `Custom_Tags` are customizable
+
+#### 🔁 Post-Install Cleanup (Optional)
+- The agent installer and CA cert remain in `C:\temp\`. Consider adding tasks to delete them after deployment if needed.
+
+---
+
+## Example Variable Configuration (`vars.yaml`)
+```yaml
+cloudlens_manager_ip_or_FQDN: "20.12.10.80"
+project_key: "c09b143bedd64a7fb3f0b138a409ff66"
+custom_tags: "Env=Azure Region=US-East"
+
+local_ca_path: "/Users/yourname/path/to/cloudlenscerts.crt"
+registry_type: "secure"
+ca_cert_dir: "/etc/ssl/certs"
+cloudlens_agent_container_name: "cloudlens-agent"
+
+# Windows-specific
+local_installer_path: "/Users/yourname/Downloads/cloudlens-win-sensor-6.11.1.302.exe"
+cloudlens_installer_filename: "cloudlens-win-sensor-6.11.1.302.exe"
+ssl_verify: "yes"
+auto_update: "yes"
+log_max_size: "50m"
+log_max_file: "5"
+```
+
+---
+
+## Troubleshooting
+
+- Set `OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES` to avoid macOS Python interpreter crashes.
+- Ensure WinRM connectivity by testing with `ansible windows -i inventory.ini -m win_ping`.
+- Check `silent_install_result.rc` and `.stdout` for success or errors after running the playbook.
+
+---
+
+## License
+MIT or Company-Specific License.
