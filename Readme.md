@@ -11,9 +11,26 @@ The Linux playbook automates Docker or Podman installation, container deployment
 
 ---
 
+
+## 📁 Repository Structure
+
+| File/Folder | Description |
+|-------------|-------------|
+| `ubuntu.yaml` | Deploy CloudLens agent on Ubuntu (Docker) |
+| `redhat.yaml` | Deploy CloudLens agent on RHEL (Podman) |
+| `windows.yaml` | Deploy CloudLens agent on Windows (.exe) |
+| `ubuntu_cleanup.yaml` | Remove CloudLens agent and Docker from Ubuntu |
+| `redhat_cleanup.yaml` | Remove CloudLens agent, Podman, and registry config |
+| `windows_cleanup.yaml` | Uninstall CloudLens agent from Windows |
+| `variables.yaml` | Global config (registry, project key, certs, tags) |
+| `inventory.ini` | Target host definitions for Ansible |
+| `ansible.cfg` | Ansible control configuration |
+| `README.md` | This documentation file |
+
+
 ## Repository Contents
 
-- `main.yaml`: Primary Linux playbook responsible for:
+- `redhat.yaml,ubuntu.yaml`: Primary Linux playbook responsible for:
   - Installing and configuring Docker or Podman
   - Configuring insecure or secure registry settings
   - Deploying the CloudLens Agent container
@@ -112,14 +129,6 @@ cloudlens_installer_filename: "cloudlens-win-sensor.exe"
 - Mount necessary volumes (`/lib/modules`, `/var/log/cloudlens`, `/host`) for full visibility
 - Ensure the `/etc/containers/registries.conf.d/cloudlens.conf` file is properly structured for `insecure` deployments
 
-#### Commands for Podman Validation
-```bash
-podman ps -a
-podman images
-podman rm -f cloudlens-agent
-podman rmi <image>
-```
-
 > **Note:** Podman does not have a daemon, so systemd services like `podman.socket` are only optionally used on RHEL 8+
 
 #### Debugging
@@ -150,11 +159,43 @@ podman rmi <image>
 
 ---
 
+
+---
+
+##  Ansible Logging Details
+
+The Ansible configuration enables centralized logging of all playbook executions with the following setting in `ansible.cfg`:
+
+```ini
+log_path = ./ansible.log
+```
+
+### 📍 Location
+All logs are written to:
+```bash
+./ansible.log
+```
+
+### 🔍 What This Log Contains
+- SSH connection events
+- Task execution results and errors
+- Python interpreter discovery info
+- Module stack traces and debug output
+- Warnings and tracebacks
+
+### 🧑‍🔧 Use Cases
+- Troubleshooting failed playbooks
+- Reviewing debug information
+- Providing an audit trail of Ansible executions
+- Diagnosing interpreter or module compatibility issues
+
+--
+
 ## Useful Commands
 
 - Dry run:
 ```bash
-ansible-playbook -i inventory.ini main.yaml --syntax-check
+ansible-playbook -i inventory.ini playbook(e.g ubuntu.yaml) --syntax-check
 ```
 
 - Set interpreter explicitly:
@@ -205,3 +246,22 @@ Use `redhat_cleanup.yaml` to:
 ## Contact
 
 Please raise issues or PRs to suggest improvements or fixes.
+
+--
+
+### Note
+
+You should install pywinrm on your Host because:
+
+🔧 **Ansible Always Runs from the Control Node (Your Mac)**
+Ansible is agentless — it connects remotely to Windows (via WinRM) or Linux (via SSH).
+
+So, all required Ansible Python packages (including pywinrm) must be installed on the machine where you're running Ansible — which is your Mac.
+
+The Windows VMs just need to have WinRM enabled and reachable.
+
+**Solution: Use Python's forkserver Start Method (for Ansible on macOS)**
+You can force Python to use forkserver or spawn as the process start method by setting this environment variable:
+
+```bash
+export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES

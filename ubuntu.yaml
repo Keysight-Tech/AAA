@@ -3,7 +3,7 @@
   hosts: all
   become: yes
   vars_files:
-    - vars.yaml
+    - variables.yaml
 
   tasks:
     - name: Gather facts about the system

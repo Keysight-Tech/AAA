@@ -2,7 +2,7 @@
   hosts: azure_vms
   become: yes
   vars_files:
-    - vars.yaml
+    - variables.yaml
   vars:
     podman_command: podman
     ca_cert_dir: "/etc/pki/ca-trust/source/anchors"
