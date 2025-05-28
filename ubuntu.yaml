@@ -1,6 +1,6 @@
 ---
 - name: Deploy CloudLens Agent to Ubuntu VMs
-  hosts: all
+  hosts: azure_vms
   become: yes
   vars_files:
     - variables.yaml
@@ -133,10 +133,9 @@
       become: yes
       when: registry_type == "secure"
 
-    - name: Remove existing CloudLens agent container if exists
-      community.docker.docker_container:
-        name: "{{ cloudlens_agent_container_name }}"
-        state: absent
+    - name: Force remove existing CloudLens container if exists
+      shell: |
+        docker rm -f "{{ cloudlens_agent_container_name }}" || true
       ignore_errors: yes
 
     - name: Install CloudLens Agent

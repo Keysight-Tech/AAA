@@ -23,12 +23,6 @@
         state: directory
         mode: '0755'
 
-    - name: Get Podman version
-      ansible.builtin.command: podman --version
-      register: podman_version
-      changed_when: false
-
-
     - name: Check if Podman is installed
       ansible.builtin.command: command -v podman
       register: podman_installed
@@ -59,6 +53,13 @@
         - podman_installed.rc != 0
         - ansible_os_family == 'RedHat'
         - ansible_distribution_major_version | int < 8
+
+    - name: Get Podman version
+      ansible.builtin.command: podman --version
+      register: podman_version
+      changed_when: false
+      when: podman_installed.rc == 0
+
 
     - name: Ensure Podman service is enabled (no daemon, so just verify)
       ansible.builtin.systemd:
