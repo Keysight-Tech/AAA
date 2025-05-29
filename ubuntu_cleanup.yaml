@@ -1,5 +1,5 @@
 - name: Cleanup CloudLens Agent and Docker from Ubuntu VMs
-  hosts: azure_vms
+  hosts: ubuntu_vms
   become: yes
   vars:
     registry_type: "insecure"  # Change to "insecure" if applicable

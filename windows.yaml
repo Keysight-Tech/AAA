@@ -63,3 +63,16 @@
       fail:
         msg: "CloudLens Agent installation failed. Check the output for errors."
       when: silent_install_result.rc != 0
+
+
+    - name: Check if CloudLens Agent process is running
+      win_shell: |
+        Get-Process -Name "CloudLensAgent_x64" -ErrorAction SilentlyContinue
+      register: cloudlens_process
+      changed_when: false
+      ignore_errors: false
+
+    - name: Fail if CloudLens Agent is not running
+      fail:
+        msg: "CloudLens Agent is not running. The installation may have failed or the agent failed to start."
+      when: cloudlens_process.stdout == ""

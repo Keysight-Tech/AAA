@@ -1,6 +1,6 @@
 ---
 - name: Deploy CloudLens Agent to Ubuntu VMs
-  hosts: azure_vms
+  hosts: ubuntu_vms
   become: yes
   vars_files:
     - variables.yaml
@@ -128,6 +128,23 @@
         mode: '0644'
       when: registry_type == "secure"
 
+    - name: Ensure Docker certs.d directory exists for CloudLens registry
+      file:
+        path: "/etc/docker/certs.d/{{ cloudlens_manager_ip_or_FQDN }}"
+        state: directory
+        mode: '0755'
+
+    - name: Copy CA cert to Docker trusted certs directory
+      copy:
+        src: "{{ local_ca_path }}"
+        dest: "/etc/docker/certs.d/{{ cloudlens_manager_ip_or_FQDN }}/ca.crt"
+        mode: '0644'
+
+    - name: Restart Docker to apply trusted certs
+      ansible.builtin.systemd:
+        name: docker
+        state: restarted
+
     - name: Update CA certificates on Ubuntu
       ansible.builtin.command: update-ca-certificates
       become: yes
@@ -154,3 +171,15 @@
         --project_key "{{ project_key }}" --server "{{ cloudlens_manager_ip_or_FQDN }}" \
         --custom_tags "{{ custom_tags }}" --ssl_verify {% if registry_type == 'secure' %}yes{% else %}no{% endif %}
       when: docker_status.status.ActiveState == "active"
+
+
+    - name: Verify CloudLens Agent container is running
+      ansible.builtin.shell: >
+        docker ps -f name={{ cloudlens_agent_container_name }} --format '{{"{{"}}.Names{{"}}"}}'
+      register: docker_agent_status
+      changed_when: false
+      failed_when: >
+        docker_agent_status.rc != 0 or
+        docker_agent_status.stdout is not defined or
+        docker_agent_status.stdout | trim == ""
+

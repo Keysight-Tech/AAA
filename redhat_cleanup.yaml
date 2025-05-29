@@ -1,5 +1,5 @@
 - name: Undo CloudLens Agent Deployment from Red Hat VMs with Podman
-  hosts: azure_vms
+  hosts: redhat_vms
   become: yes
   vars_files:
     - variables.yaml

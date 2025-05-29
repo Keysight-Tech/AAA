@@ -4,13 +4,28 @@
 
 This repository provides Ansible playbooks to deploy the CloudLens Agent across various environments, including:
 
-- **Ubuntu/RHEL-based Linux virtual machines** (Azure VMs, AWS, GCP, VMWare, Oracle, on-premise servers)
+- **Ubuntu/RHEL-based Linux virtual machines**  Tested and Supported over 500+ VMs across (Azure VMs, AWS, GCP, VMWare, Oracle, on-premise servers)
 - **Windows virtual machines** (with WinRM and `.exe` installer support)
 
 The Linux playbook automates Docker or Podman installation, container deployment, and registry authentication. The Windows playbook installs or uninstalls the CloudLens Agent `.exe` package via silent install.
 
+
+---
+# Note
+
+   This playbook can support deployments to thousands of servers as needed.
 ---
 
+## Scaling Deployments
+
+For environments with hundreds or thousands of servers, consider using:
+
+- Dynamic inventory plugins (cloud-native integration)
+- Generated static inventories via scripting
+
+📘 [Learn more about Ansible dynamic inventory plugins](https://docs.ansible.com/ansible/latest/plugins/inventory.html)
+
+---
 
 ## 📁 Repository Structure
 
@@ -113,12 +128,18 @@ pip install ansible==2.9.27
 ### 1. Inventory File (`inventory.ini`)
 
 ```ini
-[azure_vms]
-server1 ansible_host=172.200.141.103
-server3 ansible_host=172.172.121.172
+[ubuntu_vms]
+server1 ansible_host=172.200.141.103 #( replace with your ip addresses )
+
+[redhat_vms]
+server1 ansible_host=172.200.141.xx
+
+[windows]
+10.38.23.604
+
 ```
 
-### 2. Variable File (`vars.yaml`)
+### 2. Variable File (`variables.yaml`)
 
 ```yaml
 cloudlens_manager_ip_or_FQDN: "20.12.10.80"
@@ -317,12 +338,9 @@ You should install pywinrm on your Host because:
 🔧 **Ansible Always Runs from the Control Node (Your Mac)**
 Ansible is agentless — it connects remotely to Windows (via WinRM) or Linux (via SSH).
 
-So, all required Ansible Python packages (including pywinrm) must be installed on the machine where you're running Ansible — which is your Mac.
+So, all required Ansible Python packages (including pywinrm) must be installed on the machine where you're running Ansible — which is your PC.
 
 The Windows VMs just need to have WinRM enabled and reachable.
-
-**Solution: Use Python's forkserver Start Method (for Ansible on macOS)**
-You can force Python to use forkserver or spawn as the process start method by setting this environment variable:
 
 ```bash
 export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES

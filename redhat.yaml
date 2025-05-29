@@ -1,5 +1,5 @@
 - name: Deploy CloudLens Agent to Red Hat VMs with Podman
-  hosts: azure_vms
+  hosts: redhat_vms
   become: yes
   vars_files:
     - variables.yaml
@@ -130,10 +130,13 @@
         --ssl_verify {% if registry_type == 'secure' %}yes{% else %}no{% endif %}
       when: podman_installed.rc == 0
 
-    - name: Verify CloudLens Agent container is running
+    - name: Verify if CloudLens Agent container is running
       ansible.builtin.shell: >
         {{ podman_command }} ps -f name={{ cloudlens_agent_container_name }} --format '{{"{{"}}.Names{{"}}"}}'
-      register: podman_agent_running
-      failed_when: podman_agent_running.stdout != cloudlens_agent_container_name
+      register: podman_agent_status
       changed_when: false
-      ignore_errors: true
+      failed_when: >
+        podman_agent_status.rc != 0 or
+        podman_agent_status.stdout is not defined or
+        podman_agent_status.stdout | trim == ""
+
