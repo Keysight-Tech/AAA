@@ -1,13 +1,13 @@
 # General CloudLens Configuration
-cloudlens_manager_ip_or_FQDN: "20.12.10.80"
-project_key: "c09b143bedd64a7fb3f0b138a409ff66"
-custom_tags: "Env=Azure Region=US-East2"
+cloudlens_manager_ip_or_FQDN: "35.95.105.137"
+project_key: "0b32cedb085f4461830ae4a265713568"
+custom_tags: "Env=AWS Region=US-WEST-2"
 cloudlens_agent_container_name: "cloudlens-agent"
 
 
 
 # Registry Configuration
-registry_type: "secure"  # Set to "secure" if you're using a signed registry
+registry_type: "insecure"  # Set to "secure" if you're using a signed registry
 local_ca_path: "/Users/brinketu/NewCerts/cloudlenscerts.crt"  # Full cert chain (for secure registry)
 ca_cert_dir: "/etc/ssl/certs"
 
@@ -20,7 +20,7 @@ log_max_file: "5"
 # Windows Deployment
 local_installer_path: "/Users/brinketu/Downloads/cloudlens-win-sensor-6.11.1.302.exe"
 cloudlens_installer_filename: "cloudlens-win-sensor-6.11.1.302.exe"
-ssl_verify: "yes"      # Set to "yes" if using secure SSL cert
+ssl_verify: "no"      # Set to "yes" if using secure SSL cert
 auto_update: "yes"
 
 

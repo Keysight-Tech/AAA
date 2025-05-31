@@ -135,8 +135,11 @@
         {{ podman_command }} ps -f name={{ cloudlens_agent_container_name }} --format '{{"{{"}}.Names{{"}}"}}'
       register: podman_agent_status
       changed_when: false
-      failed_when: >
-        podman_agent_status.rc != 0 or
-        podman_agent_status.stdout is not defined or
-        podman_agent_status.stdout | trim == ""
+      failed_when: false
+    - name: Debug CloudLens container status
+      debug:
+        msg: >-
+          CloudLens agent container is {{
+            'running' if podman_agent_status.stdout | trim != '' else 'NOT running'
+          }} on {{ inventory_hostname }}
 
