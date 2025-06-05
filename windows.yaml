@@ -1,0 +1,78 @@
+---
+- name: Deploy CloudLens Agent to Windows VMs
+  hosts: windows
+  vars_files:
+    - variables.yaml
+
+  tasks:
+
+    - name: Ensure C:\temp directory exists
+      win_file:
+        path: C:\temp
+        state: directory
+
+    - name: Copy CA certificate to the Windows VM (for SSL verification)
+      win_copy:
+        src: "{{ local_ca_path }}"
+        dest: C:\temp\cloudlens_ca.crt
+      when: ssl_verify == "yes"
+
+    - name: Import CA cert into Trusted Root Certification Authorities
+      win_certificate_store:
+        path: C:\temp\cloudlens_ca.crt
+        store_name: Root
+        state: present
+      when: ssl_verify == "yes"
+
+    - name: Check if CloudLens Agent is already installed via registry
+      win_shell: |
+        $found = Get-ChildItem -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall" |
+          Where-Object {
+            ($_ | Get-ItemProperty).DisplayName -like "*CloudLens Agent*"
+          }
+        if ($found) {
+          $found | Select-Object -ExpandProperty PSChildName
+        }
+      register: cloudlens_installed
+      changed_when: false
+      ignore_errors: true
+
+    - name: Uninstall CloudLens Agent if already installed
+      win_shell: |
+        $app = Get-WmiObject -Class Win32_Product | Where-Object { $_.Name -like "*CloudLens Agent*" }
+        if ($app) {
+          $app.Uninstall() | Out-Null
+        }
+      when: cloudlens_installed.stdout != ""
+
+    - name: Transfer CloudLens Agent installer to the Windows VM
+      win_copy:
+        src: "{{ local_installer_path }}"
+        dest: C:\temp\{{ cloudlens_installer_filename }}
+
+    - name: Install CloudLens Agent using silent install
+      win_shell: |
+        C:\temp\{{ cloudlens_installer_filename }} /install /quiet Server="{{ cloudlens_manager_ip_or_FQDN }}" Project_Key="{{ project_key }}" SSL_Verify="{{ ssl_verify }}" Auto_Update="{{ auto_update }}" Custom_Tags="{{ custom_tags }}" -Wait
+      register: silent_install_result
+
+    - name: Display silent install output
+      debug:
+        var: silent_install_result.stdout
+
+    - name: Check if installation was successful
+      fail:
+        msg: "CloudLens Agent installation failed. Check the output for errors."
+      when: silent_install_result.rc != 0
+
+
+    - name: Check if CloudLens Agent process is running
+      win_shell: |
+        Get-Process -Name "CloudLensAgent_x64" -ErrorAction SilentlyContinue
+      register: cloudlens_process
+      changed_when: false
+      ignore_errors: false
+
+    - name: Fail if CloudLens Agent is not running
+      fail:
+        msg: "CloudLens Agent is not running. The installation may have failed or the agent failed to start."
+      when: cloudlens_process.stdout == ""
