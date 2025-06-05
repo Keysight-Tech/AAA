@@ -209,6 +209,53 @@ cloudlens_installer_filename: "cloudlens-win-sensor.exe"
 
 ---
 
+---
+
+## AWS Windows Deployment (SSM Method)
+
+This section documents the steps to prepare and manage Windows instances on AWS using **Session Manager** (SSM) for agentless, secure remote access and Ansible deployment.
+
+### ✅ Steps Successfully Completed:
+
+1. **Created IAM Role for EC2 SSM Access**
+   - Attached policies:
+     - `AmazonSSMManagedInstanceCore`
+     - `AmazonEC2RoleforSSM`
+   - IAM Role Name: `CloudLensSessionManagerRole`
+   - Attached to target Windows EC2 instance
+
+2. **Installed AWS CLI and Session Manager Plugin on Ansible Control Node**
+   - Installed via Homebrew on macOS:
+     ```bash
+     brew install awscli
+     brew install session-manager-plugin
+     ```
+   - Verified CLI version:
+     ```bash
+     aws --version
+     session-manager-plugin --version
+     ```
+
+3. **Confirmed EC2 is Managed by SSM**
+   - Verified with:
+     ```bash
+     aws ssm describe-instance-information
+     ```
+   - EC2 instance appeared with `PingStatus: Online`
+
+4. **Updated `inventory.ini` for SSM Plugin Usage**
+   ```ini
+   [windows]
+   i-0123456789abcdef0
+
+   [windows:vars]
+   ansible_connection=aws_ssm
+   ansible_aws_ssm_region=us-west-2
+   ansible_aws_ssm_profile=default
+   ansible_user=Administrator
+   
+---
+
 
 ## Deployment Commands
 

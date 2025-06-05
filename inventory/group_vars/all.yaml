@@ -1,6 +1,6 @@
 # General CloudLens Configuration
-cloudlens_manager_ip_or_FQDN: "35.84.199.33"
-project_key: "d54786f043e4400cb8f261434ac98c11"
+cloudlens_manager_ip_or_FQDN: "35.86.201.194"
+project_key: "6a357a17676c4863856970d40e65d7c5"
 custom_tags: "Env= AWS Region= US-WEST-2"
 cloudlens_agent_container_name: "cloudlens-agent"
 
@@ -10,6 +10,8 @@ cloudlens_agent_container_name: "cloudlens-agent"
 registry_type: "insecure"  # Set to "secure" if you're using a signed registry
 local_ca_path: "/Users/brinketu/NewCerts/cloudlenscerts.crt"  # Full cert chain (for secure registry)
 ca_cert_dir: "/etc/ssl/certs"
+ansible_connection: ssh
+
 
 
 # Log Rotation Settings
