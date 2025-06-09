@@ -220,6 +220,12 @@ cloudlens_installer_filename: "cloudlens-win-sensor.exe"
 
 ## Deployment Commands
 
+
+### Before running make sure host are reachable
+
+```ansible ubuntu_vms -i inventory.ini -m ping -vvv ```
+
+
 ### Ubuntu Linux Deployment
 ```bash
 ansible-playbook -i inventory.ini ubuntu.yaml
