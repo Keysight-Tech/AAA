@@ -76,18 +76,24 @@ For environments with hundreds or thousands of servers, consider using:
 ### macOS
 ```bash
 brew install ansible
+pip install pywinrm requests
+ansible-galaxy collection install ansible.windows
 ```
 
 ### Ubuntu / Debian Linux
 ```bash
 sudo apt update
 sudo apt install -y ansible
+pip install pywinrm requests
+ansible-galaxy collection install ansible.windows
 ```
 
 ### RHEL / CentOS Linux
 ```bash
 sudo yum install -y epel-release
 sudo yum install -y ansible
+pip install pywinrm requests
+ansible-galaxy collection install ansible.windows
 ```
 
 ### Windows (via WSL or Virtual Environment)
@@ -96,7 +102,9 @@ sudo yum install -y ansible
 3. Run:
 ```bash
 sudo apt update
-sudo apt install -y ansible
+sudo apt install -y ansible  (ansble version 2.13 is best compartible when deploying in azure )
+pip install pywinrm requests
+ansible-galaxy collection install ansible.windows
 ```
 
 Alternatively, install Ansible via Python virtualenv:
@@ -129,10 +137,10 @@ pip install ansible==2.9.27
 
 ```ini
 [ubuntu_vms]
-server1 ansible_host=172.200.141.103 #( replace with your ip addresses )
+172.200.141.103 #( replace with your ip addresses )
 
 [redhat_vms]
-server1 ansible_host=172.200.141.xx
+172.200.141.xx
 
 [windows]
 10.38.23.604

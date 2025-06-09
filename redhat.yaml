@@ -7,6 +7,7 @@
     podman_command: podman
     ca_cert_dir: "/etc/pki/ca-trust/source/anchors"
 
+
   tasks:
     - name: Gather facts about the system
       setup:
@@ -130,13 +131,18 @@
         --ssl_verify {% if registry_type == 'secure' %}yes{% else %}no{% endif %}
       when: podman_installed.rc == 0
 
-    - name: Verify if CloudLens Agent container is running
+    - name: Wait until CloudLens Agent container is running
       ansible.builtin.shell: >
-        {{ podman_command }} ps -f name={{ cloudlens_agent_container_name }} --format '{{"{{"}}.Names{{"}}"}}'
-      register: podman_agent_status
+        {{ podman_command }} inspect -f '{{ '{{' }}.State.Status{{ '}}' }}' {{ cloudlens_agent_container_name }}
+      register: container_state
+      retries: 20
+      delay: 4
+      until: container_state.stdout.strip() == "running"
       changed_when: false
-      failed_when: >
-        podman_agent_status.rc != 0 or
-        podman_agent_status.stdout is not defined or
-        podman_agent_status.stdout | trim == ""
+      failed_when: container_state.rc != 0 or container_state.stdout.strip() != "running"
+
+    - name: Confirm container is actively running
+      debug:
+        msg: "✅ CloudLens Agent container is in state: {{ container_state.stdout | trim }}"
+
 
