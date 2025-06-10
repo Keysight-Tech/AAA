@@ -135,8 +135,8 @@
       ansible.builtin.shell: >
         {{ podman_command }} inspect -f '{{ '{{' }}.State.Status{{ '}}' }}' {{ cloudlens_agent_container_name }}
       register: container_state
-      retries: 20
-      delay: 4
+      retries: 25
+      delay: 10
       until: container_state.stdout.strip() == "running"
       changed_when: false
       failed_when: container_state.rc != 0 or container_state.stdout.strip() != "running"

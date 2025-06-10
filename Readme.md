@@ -225,6 +225,10 @@ cloudlens_installer_filename: "cloudlens-win-sensor.exe"
 
 ```ansible ubuntu_vms -i inventory.ini -m ping -vvv ```
 
+```ansible windows -i inventory.ini -m win_ping -vvv```
+
+``` ansible redhat_vms -i inventory.ini -m ping -vvv```
+
 
 ### Ubuntu Linux Deployment
 ```bash
@@ -258,6 +262,45 @@ ansible-playbook -i inventory.ini windows_cleanup.yaml
 
 ---
 
+
+## 🔁 Deploy All Playbooks at Once
+
+You can use a single master file (`all.yaml`) to orchestrate multiple playbooks across different operating systems:
+
+
+# all.yaml
+- import_playbook: ubuntu.yaml
+- import_playbook: redhat.yaml
+- import_playbook: windows.yaml
+
+## ✅ Validate and Run the Master Playbook
+
+### 🧪 Syntax Check
+
+Run a syntax check to validate your playbook structure:
+
+```bash
+
+ansible-playbook -i inventory.ini all.yaml --syntax-check
+
+
+### Do synthax check 
+
+```bash
+
+    ansible-playbook -i inventory.ini all.yaml --list-hosts
+
+
+```bash
+
+    ansible-playbook -i inventory.ini all.yaml --list-tasks
+
+
+# Run o deploy all
+
+```bash
+
+ansible-playbook -i inventory.ini all.yaml -vvv t
 ##  Ansible Logging Details
 
 The Ansible configuration enables centralized logging of all playbook executions with the following setting in `ansible.cfg`:
