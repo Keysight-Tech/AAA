@@ -1,6 +1,6 @@
 # General CloudLens Configuration
 cloudlens_manager_ip_or_FQDN: "20.12.10.80"
-project_key: "c09b143bedd64a7fb3f0b138a409ff66"
+project_key: "0b9d664123734a60ac4a6cc9333e3d2b"
 custom_tags: "Env=Azure Region=US-East2"
 cloudlens_agent_container_name: "cloudlens-agent"
 

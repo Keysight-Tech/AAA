@@ -5,17 +5,7 @@ subscription_id: "16e5b426-6372-4975-908a-e4cc44ee3cab"
 include_vm_resource_groups:
   - BrineK
 
-vars:
-  ansible_python_interpreter: /Users/brinketu/.pyenv/versions/3.11.9/bin/python3
-
-# conditional_groups:
-#   os_family: "OS_{{ ansible_os_family }}"
-
 keyed_groups:
   - prefix: tag
     key: tags
 
-# Optional cache settings to avoid frequent API calls
-cache_plugin: jsonfile
-cache_timeout: 3600
-cache_connection: /tmp/ansible_cache

@@ -2,81 +2,64 @@
 
 ## Overview
 
-This repository provides Ansible playbooks to deploy the CloudLens Agent across various environments, including:
+This repository provides fully automated Ansible playbooks for deploying the CloudLens Agent across various platforms:
 
-- **Ubuntu/RHEL-based Linux virtual machines**  Tested and Supported over 500+ VMs across (Azure VMs, AWS, GCP, VMWare, Oracle, on-premise servers)
-- **Windows virtual machines** (with WinRM and `.exe` installer support)
+- **Linux (Ubuntu, RHEL/CentOS)** – Docker or Podman-based container deployment.
+- **Windows** – `.exe` silent installation over WinRM.
 
-The Linux playbook automates Docker or Podman installation, container deployment, and registry authentication. The Windows playbook installs or uninstalls the CloudLens Agent `.exe` package via silent install.
-
+The solution automates everything from installing dependencies to verifying agent health, including:
+- Container engine setup (Docker or Podman).
+- Registry trust and authentication.
+- Agent container or installer deployment.
+- Structured logging and clean-up.
 
 ---
-# Note
 
-   This playbook can support deployments to thousands of servers as needed.
+## ⚠️ Note
+
+This deployment framework supports scaling to thousands of servers across hybrid infrastructures using either static inventories or dynamic inventory plugins.
+
 ---
 
-## Scaling Deployments
+## 📈 Scaling Deployments
 
-For environments with hundreds or thousands of servers, consider using:
+For large-scale infrastructure:
+- Use dynamic inventories like `azure_rm`, `ec2`, or `gcp_compute`.
+- Use `constructed.yaml` to group VMs dynamically based on tags.
 
-- Dynamic inventory plugins (cloud-native integration)
-- Generated static inventories via scripting
-
-📘 [Learn more about Ansible dynamic inventory plugins](https://docs.ansible.com/ansible/latest/plugins/inventory.html)
+📘 **[Explore Ansible dynamic inventory plugins](https://docs.ansible.com/ansible/latest/plugins/inventory.html)**
 
 ---
 
 ## 📁 Repository Structure
 
-| File/Folder | Description |
-|-------------|-------------|
-| `ubuntu.yaml` | Deploy CloudLens agent on Ubuntu (Docker) |
-| `redhat.yaml` | Deploy CloudLens agent on RHEL (Podman) |
-| `windows.yaml` | Deploy CloudLens agent on Windows (.exe) |
-| `ubuntu_cleanup.yaml` | Remove CloudLens agent and Docker from Ubuntu |
-| `redhat_cleanup.yaml` | Remove CloudLens agent, Podman, and registry config |
-| `windows_cleanup.yaml` | Uninstall CloudLens agent from Windows |
-| `variables.yaml` | Global config (registry, project key, certs, tags) |
-| `inventory.ini` | Target host definitions for Ansible |
-| `ansible.cfg` | Ansible control configuration |
-| `README.md` | This documentation file |
-
-
-## Repository Contents
-
-- `redhat.yaml,ubuntu.yaml`: Primary Linux playbook responsible for:
-  - Installing and configuring Docker or Podman
-  - Configuring insecure or secure registry settings
-  - Deploying the CloudLens Agent container
-
-- `windows.yaml`: Windows playbook for:
-  - Creating deployment directory
-  - Uninstalling CloudLens Agent if previously installed
-  - Copying `.exe` installer to the target
-  - Installing via silent command with custom tags and SSL options
-
-- `variables.yaml`: Configuration variables such as:
-  - CloudLens Manager address
-  - Registry type (`secure` or `insecure`)
-  - Project key and custom tags
-  - Log rotation settings
-  - Windows installer path, flags, and cert config
-
-- `inventory.ini`: Target host list for Linux and Windows grouped by provider or OS
-
-- `README.md`: This documentation file
+| File/Folder               | Description                                                             |
+|---------------------------|-------------------------------------------------------------------------|
+| `ubuntu.yaml`             | Deploy CloudLens Agent on Ubuntu                                       |
+| `redhat.yaml`             | Deploy CloudLens Agent on RHEL with Podman                             |
+| `windows.yaml`            | Deploy CloudLens Agent on Windows via `.exe` installer                 |
+| `ubuntu_cleanup.yaml`     | Remove Docker and agent from Ubuntu                                    |
+| `redhat_cleanup.yaml`     | Remove Podman, agent, and config from RHEL                             |
+| `windows_cleanup.yaml`    | Uninstall agent from Windows and remove installer                      |
+| `inventory/group_vars/`   | Group-specific variables per OS/environment                            |
+| `inventory/azure_rm.yaml` | Azure dynamic inventory configuration                                  |
+| `constructed.yaml`        | Build dynamic groups based on tags                                     |
+| `ansible.cfg`             | Ansible config including SSH key path, logging, etc.                  |
+| `deploy.yaml`             | Master deployment sequence across all environments                    |
+| `ansible.log`             | Centralized execution log                                              |
 
 ---
 
-## Prerequisites
+## 🔧 Prerequisites
 
-## Installing Ansible on Your Control Node
+### Install Ansible on Your Mac, Linux, or WSL Host
 
-### macOS
+#### macOS
+
+
 ```bash
 brew install ansible
-```
+
 
 ### Ubuntu / Debian Linux
 ```bash
@@ -99,18 +82,36 @@ sudo apt update
 sudo apt install -y ansible
 ```
 
-Alternatively, install Ansible via Python virtualenv:
-```bash
-python3 -m venv venv
-source venv/bin/activate
-pip install ansible==2.9.27
+## Install Ansible Azure Collection and Azure Identity SDK
+
+1. Install the Ansible Azure Collection:
+   ```bash
+   ansible-galaxy collection install azure.azcollection:1.11.0
+
+# install azure identity
+
+```
+pip install azure-identity
 ```
 
-- **CloudLens Manager:**
-  - Reachable from target VMs
-  - Valid SSL certs (if `ssl_verify=yes`)
+# confirm identity
+
+python3 -c "from azure.identity import AzureCliCredential; print(AzureCliCredential().get_token('https://management.azure.com/.default'))"
+
+
+# Install Azure CLI
+
+```
+brew install azure-cli
+```
+
+# Install Azure Identity SDK
+```
+pip install azure-identity
+```
 
 ### Linux VMs
+
 - SSH access enabled with sudo
 - Docker- or Podman-compatible kernel
 - Internet access or internal access to private container registry
@@ -122,86 +123,7 @@ pip install ansible==2.9.27
 - Local administrator privileges
 
 ---
-
-## Setup and Configuration
-
-### 1. Inventory File (`inventory.ini`)
-
-```ini
-[ubuntu_vms]
-server1 ansible_host=172.200.141.103 #( replace with your ip addresses )
-
-[redhat_vms]
-server1 ansible_host=172.200.141.xx
-
-[windows]
-10.38.23.604
-
-```
-
-### 2. Variable File (`variables.yaml`)
-
-```yaml
-cloudlens_manager_ip_or_FQDN: "20.12.10.80"
-project_key: "<PROJECT_KEY>"
-custom_tags: "Env=Azure Region=US-East"
-registry_type: "insecure"  # or "secure"
-ssl_verify: "no"            # for Windows
-local_installer_path: "/path/to/cloudlens-win-sensor.exe"
-cloudlens_installer_filename: "cloudlens-win-sensor.exe"
-```
-
-> **Note:** Set `ssl_verify: "yes"` only if the CloudLens Manager uses a trusted SSL certificate.
-
----
-
-## Linux Deployment Workflow
-
-### For Ubuntu
-- Installs and configures Docker
-- Configures secure/insecure registry
-- Deploys and verifies the CloudLens container
-
-### For RHEL/CentOS (7 & 8+)
-- **Uses Podman (preferred on Red Hat)**
-- Conditional logic handles RHEL 7 (`yum`) and 8+ (`dnf`) for installing Podman and container tools
-- Creates necessary directories: `/var/log/cloudlens`, `/var/tmp/cloudtap`
-- Configures `registries.conf.d` for insecure registries or installs CA for secure ones
-- Pulls the sensor image from CloudLens Manager
-- Runs the container with correct capabilities and volume mappings
-- Verifies the container is running
-
-#### Best Practices for Red Hat
-- Use `podman` instead of `docker` (no daemon requirement)
-- Avoid `container-tools` on RHEL 8+ as Podman is installed directly
-- Always check Red Hat version and conditionally apply package modules
-- Use `--security-opt label=disable` for SELinux-enabled systems
-- Mount necessary volumes (`/lib/modules`, `/var/log/cloudlens`, `/host`) for full visibility
-- Ensure the `/etc/containers/registries.conf.d/cloudlens.conf` file is properly structured for `insecure` deployments
-
-> **Note:** Podman does not have a daemon, so systemd services like `podman.socket` are only optionally used on RHEL 8+
-
-#### Debugging
-- If container fails to run, ensure `/var/tmp/cloudtap` and `/var/log/cloudlens` exist
-- If image pull fails, check DNS and firewall access to CloudLens Manager
-- Use `podman logs cloudlens-agent` for troubleshooting
-
----
-
-## Windows Deployment Workflow
-
-1. Create `C:\temp` on target if not present
-2. Check if CloudLens Agent is already installed (via registry)
-3. If present, uninstall silently using PowerShell
-4. Copy installer `.exe` to `C:\temp`
-5. Run silent install with required arguments:
-   - Server IP or hostname
-   - Project key
-   - SSL verification flag (`yes` or `no`)
-   - Custom tags
-6. Display installation output
-7. Fail the play if installation fails
-
+history
 > **Important for Windows:**
 > - Ensure the `.exe` installer is correct and compatible
 > - Ensure the VM can resolve and connect to `cloudlens_manager_ip_or_FQDN`
@@ -210,36 +132,45 @@ cloudlens_installer_filename: "cloudlens-win-sensor.exe"
 ---
 
 
-## Deployment Commands
+## Connectivity test and Deployment Commands
 
 ### Ubuntu Linux Deployment
 ```bash
-ansible-playbook -i inventory.ini ubuntu.yaml
+
+ansible ubuntu_prod_vms -i inventory/ -m ping #test connections to ubuntu vms
+
+ansible-playbook -i inventory/ playbooks/ubuntu.yaml --limit ubuntu_prod_vms  -vvv #deploy
 ```
 
 ### RHEL/CentOS Deployment
 ```bash
-ansible-playbook -i inventory.ini redhat.yaml
+
+ansible rhel_prod_vms -i inventory/ -m ping #test connection
+
+ansible-playbook -i inventory/ playbooks/redhat.yaml --limit redhat_prod_vms  -vvv #deploy
 ```
 
 ### Windows Deployment
 ```bash
-ansible-playbook -i inventory.ini windows.yaml
+
+ansible windows_prod_vms -i inventory/ -m win_ping #test connection
+
+ansible-playbook -i inventory/ playbooks/ubuntu.yaml --limit windows_prod_vms  -vvv #deploy
 ```
 
 ### Cleanup - Ubuntu
 ```bash
-ansible-playbook -i inventory.ini ubuntu_cleanup.yaml
+ansible-playbook -i inventory/ playbooks/ubuntu_cleanup.yaml --limit ubuntu_prod_vms  -vvv
 ```
 
 ### Cleanup - RHEL/CentOS
 ```bash
-ansible-playbook -i inventory.ini redhat_cleanup.yaml
+ansible-playbook -i inventory/ playbooks/redhat_cleanup.yaml --limit redhat_prod_vms  -vvv
 ```
 
 ### Cleanup - Windows
 ```bash
-ansible-playbook -i inventory.ini windows_cleanup.yaml
+ansible-playbook -i inventory/ playbooks/windows_cleanup.yaml --limit windows_prod_vms  -vvv
 ```
 
 ---
@@ -345,12 +276,4 @@ The Windows VMs just need to have WinRM enabled and reachable.
 ```bash
 export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
 
-install 
 
-ansible-galaxy collection install azure.azcollection:1.11.0
-
-pip install azure-identity
-
-confirm
-
-python3 -c "from azure.identity import AzureCliCredential; print(AzureCliCredential().get_token('https://management.azure.com/.default'))"

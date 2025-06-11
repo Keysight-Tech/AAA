@@ -1,6 +1,6 @@
 ---
 - name: Uninstall CloudLens Agent from Windows VMs
-  hosts: windows
+  hosts: windows_prod_vms
   
   tasks:
 
