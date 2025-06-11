@@ -266,7 +266,7 @@ Please raise issues or PRs to suggest improvements or fixes.
 
 You should install pywinrm on your Host because:
 
-🔧 **Ansible Always Runs from the Control Node (Your Mac)**
+🔧 **Ansible Always Runs from the Control Node (Your PC)**
 Ansible is agentless — it connects remotely to Windows (via WinRM) or Linux (via SSH).
 
 So, all required Ansible Python packages (including pywinrm) must be installed on the machine where you're running Ansible — which is your PC.
