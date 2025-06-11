@@ -344,3 +344,13 @@ The Windows VMs just need to have WinRM enabled and reachable.
 
 ```bash
 export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
+
+install 
+
+ansible-galaxy collection install azure.azcollection:1.11.0
+
+pip install azure-identity
+
+confirm
+
+python3 -c "from azure.identity import AzureCliCredential; print(AzureCliCredential().get_token('https://management.azure.com/.default'))"

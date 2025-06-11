@@ -1,21 +1,482 @@
-2025-06-10 23:09:57,630 p=45950 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml with yaml plugin: Plugin configuration YAML file, not YAML inventory
+2025-06-11 13:33:42,326 p=73877 u=brinketu n=ansible INFO| ansible-inventory [core 2.18.6]
+  config file = /Users/brinketu/CloudlensFIle/Ansible/ansible.cfg
+  configured module search path = ['/Users/brinketu/.ansible/plugins/modules', '/usr/share/ansible/plugins/modules']
+  ansible python module location = /opt/homebrew/Cellar/ansible/11.6.0_1/libexec/lib/python3.13/site-packages/ansible
+  ansible collection location = /Users/brinketu/.ansible/collections:/usr/share/ansible/collections
+  executable location = /opt/homebrew/bin/ansible-inventory
+  python version = 3.13.4 (main, Jun  3 2025, 15:34:24) [Clang 17.0.0 (clang-1700.0.13.3)] (/opt/homebrew/Cellar/ansible/11.6.0_1/libexec/bin/python)
+  jinja version = 3.1.6
+  libyaml = True
+2025-06-11 13:33:42,326 p=73877 u=brinketu n=ansible INFO| Using /Users/brinketu/CloudlensFIle/Ansible/ansible.cfg as config file
+2025-06-11 13:33:42,369 p=73877 u=brinketu n=ansible INFO| redirecting (type: inventory) ansible.builtin.virtualbox to community.general.virtualbox
+2025-06-11 13:33:42,385 p=73877 u=brinketu n=ansible INFO| redirecting (type: inventory) ansible.builtin.aws_ec2 to amazon.aws.aws_ec2
+2025-06-11 13:33:42,513 p=73877 u=brinketu n=ansible INFO| redirecting (type: inventory) ansible.builtin.azure_rm to azure.azcollection.azure_rm
+2025-06-11 13:33:42,678 p=73877 u=brinketu n=ansible INFO| host_list declined parsing /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml as it did not pass its verify_file() method
+2025-06-11 13:33:42,678 p=73877 u=brinketu n=ansible INFO| ansible_collections.community.general.plugins.inventory.virtualbox declined parsing /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml as it did not pass its verify_file() method
+2025-06-11 13:33:42,682 p=73877 u=brinketu n=ansible INFO| redirecting (type: inventory) ansible.builtin.azure_rm to azure.azcollection.azure_rm
+2025-06-11 13:33:42,682 p=73877 u=brinketu n=ansible INFO| Using inventory plugin 'ansible_collections.azure.azcollection.plugins.inventory.azure_rm' to process inventory source '/Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml'
+2025-06-11 13:33:44,525 p=73877 u=brinketu n=ansible INFO| Parsed /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml inventory source with auto plugin
+2025-06-11 13:33:44,528 p=73877 u=brinketu n=ansible INFO| @all:
+  |--@ungrouped:
+  |--@tag_Name_ntop_tool:
+  |  |--ntop-tool_92d3
+  |--@tag_Role_Monitoring:
+  |  |--ntop-tool_92d3
+  |--@tag_Env_Development:
+  |  |--RHELVM-0_1c54
+  |  |--UbuntuVM-0_d442
+  |  |--WindowsVM-0_6d81
+  |--@tag_Name_RHELVM_0:
+  |  |--RHELVM-0_1c54
+  |--@tag_Name_UbuntuVM_0:
+  |  |--UbuntuVM-0_d442
+  |--@tag_Name_WindowsVM_0:
+  |  |--WindowsVM-0_6d81
+2025-06-11 13:34:10,775 p=74480 u=brinketu n=ansible INFO| ansible-inventory [core 2.18.6]
+  config file = /Users/brinketu/CloudlensFIle/Ansible/ansible.cfg
+  configured module search path = ['/Users/brinketu/.ansible/plugins/modules', '/usr/share/ansible/plugins/modules']
+  ansible python module location = /opt/homebrew/Cellar/ansible/11.6.0_1/libexec/lib/python3.13/site-packages/ansible
+  ansible collection location = /Users/brinketu/.ansible/collections:/usr/share/ansible/collections
+  executable location = /opt/homebrew/bin/ansible-inventory
+  python version = 3.13.4 (main, Jun  3 2025, 15:34:24) [Clang 17.0.0 (clang-1700.0.13.3)] (/opt/homebrew/Cellar/ansible/11.6.0_1/libexec/bin/python)
+  jinja version = 3.1.6
+  libyaml = True
+2025-06-11 13:34:10,776 p=74480 u=brinketu n=ansible INFO| Using /Users/brinketu/CloudlensFIle/Ansible/ansible.cfg as config file
+2025-06-11 13:34:10,819 p=74480 u=brinketu n=ansible INFO| redirecting (type: inventory) ansible.builtin.virtualbox to community.general.virtualbox
+2025-06-11 13:34:10,834 p=74480 u=brinketu n=ansible INFO| redirecting (type: inventory) ansible.builtin.aws_ec2 to amazon.aws.aws_ec2
+2025-06-11 13:34:10,951 p=74480 u=brinketu n=ansible INFO| redirecting (type: inventory) ansible.builtin.azure_rm to azure.azcollection.azure_rm
+2025-06-11 13:34:11,101 p=74480 u=brinketu n=ansible INFO| host_list declined parsing /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml as it did not pass its verify_file() method
+2025-06-11 13:34:11,102 p=74480 u=brinketu n=ansible INFO| ansible_collections.community.general.plugins.inventory.virtualbox declined parsing /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml as it did not pass its verify_file() method
+2025-06-11 13:34:11,106 p=74480 u=brinketu n=ansible INFO| redirecting (type: inventory) ansible.builtin.azure_rm to azure.azcollection.azure_rm
+2025-06-11 13:34:11,106 p=74480 u=brinketu n=ansible INFO| Using inventory plugin 'ansible_collections.azure.azcollection.plugins.inventory.azure_rm' to process inventory source '/Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml'
+2025-06-11 13:34:12,247 p=74480 u=brinketu n=ansible INFO| Parsed /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml inventory source with auto plugin
+2025-06-11 13:34:12,251 p=74480 u=brinketu n=ansible INFO| @all:
+  |--@ungrouped:
+  |--@tag_Name_ntop_tool:
+  |  |--ntop-tool_92d3
+  |--@tag_Role_Monitoring:
+  |  |--ntop-tool_92d3
+  |--@tag_Env_Development:
+  |  |--RHELVM-0_1c54
+  |  |--UbuntuVM-0_d442
+  |  |--WindowsVM-0_6d81
+  |--@tag_Name_RHELVM_0:
+  |  |--RHELVM-0_1c54
+  |--@tag_Name_UbuntuVM_0:
+  |  |--UbuntuVM-0_d442
+  |--@tag_Name_WindowsVM_0:
+  |  |--WindowsVM-0_6d81
+2025-06-11 13:34:21,181 p=74628 u=brinketu n=ansible INFO| ansible-inventory [core 2.18.6]
+  config file = /Users/brinketu/CloudlensFIle/Ansible/ansible.cfg
+  configured module search path = ['/Users/brinketu/.ansible/plugins/modules', '/usr/share/ansible/plugins/modules']
+  ansible python module location = /opt/homebrew/Cellar/ansible/11.6.0_1/libexec/lib/python3.13/site-packages/ansible
+  ansible collection location = /Users/brinketu/.ansible/collections:/usr/share/ansible/collections
+  executable location = /opt/homebrew/bin/ansible-inventory
+  python version = 3.13.4 (main, Jun  3 2025, 15:34:24) [Clang 17.0.0 (clang-1700.0.13.3)] (/opt/homebrew/Cellar/ansible/11.6.0_1/libexec/bin/python)
+  jinja version = 3.1.6
+  libyaml = True
+2025-06-11 13:34:21,181 p=74628 u=brinketu n=ansible INFO| Using /Users/brinketu/CloudlensFIle/Ansible/ansible.cfg as config file
+2025-06-11 13:34:21,224 p=74628 u=brinketu n=ansible INFO| redirecting (type: inventory) ansible.builtin.virtualbox to community.general.virtualbox
+2025-06-11 13:34:21,237 p=74628 u=brinketu n=ansible INFO| redirecting (type: inventory) ansible.builtin.aws_ec2 to amazon.aws.aws_ec2
+2025-06-11 13:34:21,320 p=74628 u=brinketu n=ansible INFO| redirecting (type: inventory) ansible.builtin.azure_rm to azure.azcollection.azure_rm
+2025-06-11 13:34:21,441 p=74628 u=brinketu n=ansible INFO| host_list declined parsing /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml as it did not pass its verify_file() method
+2025-06-11 13:34:21,441 p=74628 u=brinketu n=ansible INFO| ansible_collections.community.general.plugins.inventory.virtualbox declined parsing /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml as it did not pass its verify_file() method
+2025-06-11 13:34:21,445 p=74628 u=brinketu n=ansible INFO| redirecting (type: inventory) ansible.builtin.azure_rm to azure.azcollection.azure_rm
+2025-06-11 13:34:21,445 p=74628 u=brinketu n=ansible INFO| Using inventory plugin 'ansible_collections.azure.azcollection.plugins.inventory.azure_rm' to process inventory source '/Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml'
+2025-06-11 13:34:22,390 p=74628 u=brinketu n=ansible INFO| Parsed /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml inventory source with auto plugin
+2025-06-11 13:34:22,399 p=74628 u=brinketu n=ansible WARNING| [WARNING]: Found variable using reserved name: name
 
-2025-06-10 23:09:57,630 p=45950 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml with constructed plugin: Incorrect plugin name in file: azure_rm
+2025-06-11 13:34:22,399 p=74628 u=brinketu n=ansible WARNING| [WARNING]: Found variable using reserved name: tags
 
-2025-06-10 23:09:57,630 p=45950 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml with auto plugin: Failed to get credentials. Either pass as parameters, set environment
-variables, define a profile in ~/.azure/credentials, or install Azure CLI and log in (`az login`).
+2025-06-11 13:34:22,402 p=74628 u=brinketu n=ansible INFO| {
+    "_meta": {
+        "hostvars": {
+            "RHELVM-0_1c54": {
+                "ansible_host": "172.203.17.204",
+                "auto_update": "yes",
+                "availability_zone": null,
+                "ca_cert_dir": "/etc/ssl/certs",
+                "cloudlens_agent_container_name": "cloudlens-agent",
+                "cloudlens_installer_filename": "cloudlens-win-sensor-6.11.1.302.exe",
+                "cloudlens_manager_ip_or_FQDN": "20.12.10.80",
+                "computer_name": "RHELVM-0",
+                "custom_tags": "Env=Azure Region=US-East2",
+                "data_disks": [],
+                "default_inventory_hostname": "RHELVM-0_1c54",
+                "id": "/subscriptions/16e5b426-6372-4975-908a-e4cc44ee3cab/resourceGroups/BrineK/providers/Microsoft.Compute/virtualMachines/RHELVM-0",
+                "image": {
+                    "offer": "RHEL",
+                    "publisher": "RedHat",
+                    "sku": "8-LVM",
+                    "version": "latest"
+                },
+                "local_ca_path": "/Users/brinketu/NewCerts/cloudlenscerts.crt",
+                "local_installer_path": "/Users/brinketu/Downloads/cloudlens-win-sensor-6.11.1.302.exe",
+                "location": "eastus2",
+                "log_max_file": "5",
+                "log_max_size": "50m",
+                "mac_address": "60-45-BD-B3-46-0F",
+                "name": "RHELVM-0",
+                "network_interface": "RHELNIC-0",
+                "network_interface_id": "/subscriptions/16e5b426-6372-4975-908a-e4cc44ee3cab/resourceGroups/BrineK/providers/Microsoft.Network/networkInterfaces/RHELNIC-0",
+                "os_disk": {
+                    "id": "/subscriptions/16e5b426-6372-4975-908a-e4cc44ee3cab/resourceGroups/BrineK/providers/Microsoft.Compute/disks/RHELVM-0_OsDisk_1_9580b16016854589a77d5a36ebeed275",
+                    "name": "RHELVM-0_OsDisk_1_9580b16016854589a77d5a36ebeed275",
+                    "operating_system_type": "linux"
+                },
+                "os_profile": {
+                    "system": "linux"
+                },
+                "plan": null,
+                "powerstate": "running",
+                "private_ipv4_addresses": [
+                    "10.0.1.5"
+                ],
+                "project_key": "c09b143bedd64a7fb3f0b138a409ff66",
+                "provisioning_state": "succeeded",
+                "public_dns_hostnames": [],
+                "public_ip_id": "/subscriptions/16e5b426-6372-4975-908a-e4cc44ee3cab/resourceGroups/BrineK/providers/Microsoft.Network/publicIPAddresses/RHELPublicIP-0",
+                "public_ip_name": "RHELPublicIP-0",
+                "public_ipv4_addresses": [
+                    "172.203.17.204"
+                ],
+                "registry_type": "insecure",
+                "resource_group": "brinek",
+                "resource_type": "Microsoft.Compute/virtualMachines",
+                "security_group": null,
+                "security_group_id": null,
+                "ssl_verify": "no",
+                "tags": {
+                    "Env": "Development",
+                    "Name": "RHELVM-0"
+                },
+                "virtual_machine_size": "Standard_D4s_v3",
+                "vmid": "5314624e-9d88-4840-a07e-f48aa38c9037",
+                "vmss": {}
+            },
+            "UbuntuVM-0_d442": {
+                "ansible_host": "172.210.175.10",
+                "auto_update": "yes",
+                "availability_zone": null,
+                "ca_cert_dir": "/etc/ssl/certs",
+                "cloudlens_agent_container_name": "cloudlens-agent",
+                "cloudlens_installer_filename": "cloudlens-win-sensor-6.11.1.302.exe",
+                "cloudlens_manager_ip_or_FQDN": "20.12.10.80",
+                "computer_name": "UbuntuVM-0",
+                "custom_tags": "Env=Azure Region=US-East2",
+                "data_disks": [],
+                "default_inventory_hostname": "UbuntuVM-0_d442",
+                "id": "/subscriptions/16e5b426-6372-4975-908a-e4cc44ee3cab/resourceGroups/BrineK/providers/Microsoft.Compute/virtualMachines/UbuntuVM-0",
+                "image": {
+                    "offer": "0001-com-ubuntu-server-focal",
+                    "publisher": "Canonical",
+                    "sku": "20_04-lts",
+                    "version": "latest"
+                },
+                "local_ca_path": "/Users/brinketu/NewCerts/cloudlenscerts.crt",
+                "local_installer_path": "/Users/brinketu/Downloads/cloudlens-win-sensor-6.11.1.302.exe",
+                "location": "eastus2",
+                "log_max_file": "5",
+                "log_max_size": "50m",
+                "mac_address": "60-45-BD-B7-B9-C1",
+                "name": "UbuntuVM-0",
+                "network_interface": "UbuntuNIC-0",
+                "network_interface_id": "/subscriptions/16e5b426-6372-4975-908a-e4cc44ee3cab/resourceGroups/BrineK/providers/Microsoft.Network/networkInterfaces/UbuntuNIC-0",
+                "os_disk": {
+                    "id": "/subscriptions/16e5b426-6372-4975-908a-e4cc44ee3cab/resourceGroups/BrineK/providers/Microsoft.Compute/disks/UbuntuVM-0_OsDisk_1_2d2fbf027cc843eb966b7694c04524da",
+                    "name": "UbuntuVM-0_OsDisk_1_2d2fbf027cc843eb966b7694c04524da",
+                    "operating_system_type": "linux"
+                },
+                "os_profile": {
+                    "system": "linux"
+                },
+                "plan": null,
+                "powerstate": "running",
+                "private_ipv4_addresses": [
+                    "10.0.1.7"
+                ],
+                "project_key": "c09b143bedd64a7fb3f0b138a409ff66",
+                "provisioning_state": "succeeded",
+                "public_dns_hostnames": [],
+                "public_ip_id": "/subscriptions/16e5b426-6372-4975-908a-e4cc44ee3cab/resourceGroups/BrineK/providers/Microsoft.Network/publicIPAddresses/UbuntuPublicIP-0",
+                "public_ip_name": "UbuntuPublicIP-0",
+                "public_ipv4_addresses": [
+                    "172.210.175.10"
+                ],
+                "registry_type": "insecure",
+                "resource_group": "brinek",
+                "resource_type": "Microsoft.Compute/virtualMachines",
+                "security_group": null,
+                "security_group_id": null,
+                "ssl_verify": "no",
+                "tags": {
+                    "Env": "Development",
+                    "Name": "UbuntuVM-0"
+                },
+                "virtual_machine_size": "Standard_D4s_v3",
+                "vmid": "bb32abef-733f-46ec-86ac-599ef2b732e5",
+                "vmss": {}
+            },
+            "WindowsVM-0_6d81": {
+                "ansible_host": "135.119.179.243",
+                "auto_update": "yes",
+                "availability_zone": null,
+                "ca_cert_dir": "/etc/ssl/certs",
+                "cloudlens_agent_container_name": "cloudlens-agent",
+                "cloudlens_installer_filename": "cloudlens-win-sensor-6.11.1.302.exe",
+                "cloudlens_manager_ip_or_FQDN": "20.12.10.80",
+                "computer_name": "WindowsVM-0",
+                "custom_tags": "Env=Azure Region=US-East2",
+                "data_disks": [],
+                "default_inventory_hostname": "WindowsVM-0_6d81",
+                "id": "/subscriptions/16e5b426-6372-4975-908a-e4cc44ee3cab/resourceGroups/BrineK/providers/Microsoft.Compute/virtualMachines/WindowsVM-0",
+                "image": {
+                    "offer": "WindowsServer",
+                    "publisher": "MicrosoftWindowsServer",
+                    "sku": "2019-Datacenter",
+                    "version": "latest"
+                },
+                "local_ca_path": "/Users/brinketu/NewCerts/cloudlenscerts.crt",
+                "local_installer_path": "/Users/brinketu/Downloads/cloudlens-win-sensor-6.11.1.302.exe",
+                "location": "eastus2",
+                "log_max_file": "5",
+                "log_max_size": "50m",
+                "mac_address": "7C-1E-52-D7-BA-C3",
+                "name": "WindowsVM-0",
+                "network_interface": "WindowsNIC-0",
+                "network_interface_id": "/subscriptions/16e5b426-6372-4975-908a-e4cc44ee3cab/resourceGroups/BrineK/providers/Microsoft.Network/networkInterfaces/WindowsNIC-0",
+                "os_disk": {
+                    "id": "/subscriptions/16e5b426-6372-4975-908a-e4cc44ee3cab/resourceGroups/BrineK/providers/Microsoft.Compute/disks/WindowsVM-0_OsDisk_1_c5cf314990c1435fa27357c65c219ddc",
+                    "name": "WindowsVM-0_OsDisk_1_c5cf314990c1435fa27357c65c219ddc",
+                    "operating_system_type": "windows"
+                },
+                "os_profile": {
+                    "system": "windows"
+                },
+                "plan": null,
+                "powerstate": "running",
+                "private_ipv4_addresses": [
+                    "10.0.1.4"
+                ],
+                "project_key": "c09b143bedd64a7fb3f0b138a409ff66",
+                "provisioning_state": "succeeded",
+                "public_dns_hostnames": [],
+                "public_ip_id": "/subscriptions/16e5b426-6372-4975-908a-e4cc44ee3cab/resourceGroups/BrineK/providers/Microsoft.Network/publicIPAddresses/WindowsPublicIP-0",
+                "public_ip_name": "WindowsPublicIP-0",
+                "public_ipv4_addresses": [
+                    "135.119.179.243"
+                ],
+                "registry_type": "insecure",
+                "resource_group": "brinek",
+                "resource_type": "Microsoft.Compute/virtualMachines",
+                "security_group": null,
+                "security_group_id": null,
+                "ssl_verify": "no",
+                "tags": {
+                    "Env": "Development",
+                    "Name": "WindowsVM-0"
+                },
+                "virtual_machine_size": "Standard_D4s_v3",
+                "vmid": "d140d957-909e-469c-a570-8e543ad3cb5a",
+                "vmss": {}
+            },
+            "ntop-tool_92d3": {
+                "ansible_host": "172.210.167.40",
+                "auto_update": "yes",
+                "availability_zone": null,
+                "ca_cert_dir": "/etc/ssl/certs",
+                "cloudlens_agent_container_name": "cloudlens-agent",
+                "cloudlens_installer_filename": "cloudlens-win-sensor-6.11.1.302.exe",
+                "cloudlens_manager_ip_or_FQDN": "20.12.10.80",
+                "computer_name": "ntop-tool",
+                "custom_tags": "Env=Azure Region=US-East2",
+                "data_disks": [],
+                "default_inventory_hostname": "ntop-tool_92d3",
+                "id": "/subscriptions/16e5b426-6372-4975-908a-e4cc44ee3cab/resourceGroups/BrineK/providers/Microsoft.Compute/virtualMachines/ntop-tool",
+                "image": {
+                    "offer": "0001-com-ubuntu-server-focal",
+                    "publisher": "Canonical",
+                    "sku": "20_04-lts",
+                    "version": "latest"
+                },
+                "local_ca_path": "/Users/brinketu/NewCerts/cloudlenscerts.crt",
+                "local_installer_path": "/Users/brinketu/Downloads/cloudlens-win-sensor-6.11.1.302.exe",
+                "location": "eastus2",
+                "log_max_file": "5",
+                "log_max_size": "50m",
+                "mac_address": "7C-1E-52-B3-45-23",
+                "name": "ntop-tool",
+                "network_interface": "ntopToolNIC",
+                "network_interface_id": "/subscriptions/16e5b426-6372-4975-908a-e4cc44ee3cab/resourceGroups/BrineK/providers/Microsoft.Network/networkInterfaces/ntopToolNIC",
+                "os_disk": {
+                    "id": "/subscriptions/16e5b426-6372-4975-908a-e4cc44ee3cab/resourceGroups/BrineK/providers/Microsoft.Compute/disks/ntop-tool_OsDisk_1_e0bed98c9bdf47a0a6f4c0ea6729e2be",
+                    "name": "ntop-tool_OsDisk_1_e0bed98c9bdf47a0a6f4c0ea6729e2be",
+                    "operating_system_type": "linux"
+                },
+                "os_profile": {
+                    "system": "linux"
+                },
+                "plan": null,
+                "powerstate": "running",
+                "private_ipv4_addresses": [
+                    "10.0.1.6"
+                ],
+                "project_key": "c09b143bedd64a7fb3f0b138a409ff66",
+                "provisioning_state": "succeeded",
+                "public_dns_hostnames": [],
+                "public_ip_id": "/subscriptions/16e5b426-6372-4975-908a-e4cc44ee3cab/resourceGroups/BrineK/providers/Microsoft.Network/publicIPAddresses/ntopToolPublicIP",
+                "public_ip_name": "ntopToolPublicIP",
+                "public_ipv4_addresses": [
+                    "172.210.167.40"
+                ],
+                "registry_type": "insecure",
+                "resource_group": "brinek",
+                "resource_type": "Microsoft.Compute/virtualMachines",
+                "security_group": null,
+                "security_group_id": null,
+                "ssl_verify": "no",
+                "tags": {
+                    "Name": "ntop-tool",
+                    "Role": "Monitoring"
+                },
+                "virtual_machine_size": "Standard_D4s_v3",
+                "vmid": "8a6c6f09-c622-44c2-94ce-eca198b36995",
+                "vmss": {}
+            }
+        }
+    },
+    "all": {
+        "children": [
+            "ungrouped",
+            "tag_Name_ntop_tool",
+            "tag_Role_Monitoring",
+            "tag_Env_Development",
+            "tag_Name_RHELVM_0",
+            "tag_Name_UbuntuVM_0",
+            "tag_Name_WindowsVM_0"
+        ]
+    },
+    "tag_Env_Development": {
+        "hosts": [
+            "RHELVM-0_1c54",
+            "UbuntuVM-0_d442",
+            "WindowsVM-0_6d81"
+        ]
+    },
+    "tag_Name_RHELVM_0": {
+        "hosts": [
+            "RHELVM-0_1c54"
+        ]
+    },
+    "tag_Name_UbuntuVM_0": {
+        "hosts": [
+            "UbuntuVM-0_d442"
+        ]
+    },
+    "tag_Name_WindowsVM_0": {
+        "hosts": [
+            "WindowsVM-0_6d81"
+        ]
+    },
+    "tag_Name_ntop_tool": {
+        "hosts": [
+            "ntop-tool_92d3"
+        ]
+    },
+    "tag_Role_Monitoring": {
+        "hosts": [
+            "ntop-tool_92d3"
+        ]
+    }
+}
+2025-06-11 13:34:38,108 p=74875 u=brinketu n=ansible INFO| ansible-inventory [core 2.18.6]
+  config file = /Users/brinketu/CloudlensFIle/Ansible/ansible.cfg
+  configured module search path = ['/Users/brinketu/.ansible/plugins/modules', '/usr/share/ansible/plugins/modules']
+  ansible python module location = /opt/homebrew/Cellar/ansible/11.6.0_1/libexec/lib/python3.13/site-packages/ansible
+  ansible collection location = /Users/brinketu/.ansible/collections:/usr/share/ansible/collections
+  executable location = /opt/homebrew/bin/ansible-inventory
+  python version = 3.13.4 (main, Jun  3 2025, 15:34:24) [Clang 17.0.0 (clang-1700.0.13.3)] (/opt/homebrew/Cellar/ansible/11.6.0_1/libexec/bin/python)
+  jinja version = 3.1.6
+  libyaml = True
+2025-06-11 13:34:38,108 p=74875 u=brinketu n=ansible INFO| Using /Users/brinketu/CloudlensFIle/Ansible/ansible.cfg as config file
+2025-06-11 13:34:38,152 p=74875 u=brinketu n=ansible INFO| redirecting (type: inventory) ansible.builtin.virtualbox to community.general.virtualbox
+2025-06-11 13:34:38,167 p=74875 u=brinketu n=ansible INFO| redirecting (type: inventory) ansible.builtin.aws_ec2 to amazon.aws.aws_ec2
+2025-06-11 13:34:38,287 p=74875 u=brinketu n=ansible INFO| redirecting (type: inventory) ansible.builtin.azure_rm to azure.azcollection.azure_rm
+2025-06-11 13:34:38,444 p=74875 u=brinketu n=ansible INFO| host_list declined parsing /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml as it did not pass its verify_file() method
+2025-06-11 13:34:38,444 p=74875 u=brinketu n=ansible INFO| ansible_collections.community.general.plugins.inventory.virtualbox declined parsing /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml as it did not pass its verify_file() method
+2025-06-11 13:34:38,448 p=74875 u=brinketu n=ansible INFO| redirecting (type: inventory) ansible.builtin.azure_rm to azure.azcollection.azure_rm
+2025-06-11 13:34:38,448 p=74875 u=brinketu n=ansible INFO| Using inventory plugin 'ansible_collections.azure.azcollection.plugins.inventory.azure_rm' to process inventory source '/Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml'
+2025-06-11 13:34:40,031 p=74875 u=brinketu n=ansible INFO| script declined parsing /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml as it did not pass its verify_file() method
+2025-06-11 13:34:40,032 p=74875 u=brinketu n=ansible INFO| toml declined parsing /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml as it did not pass its verify_file() method
+2025-06-11 13:34:40,032 p=74875 u=brinketu n=ansible INFO| ansible_collections.amazon.aws.plugins.inventory.aws_ec2 declined parsing /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml as it did not pass its verify_file() method
+2025-06-11 13:34:41,268 p=74875 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml with yaml plugin: Plugin configuration YAML file, not YAML inventory
 
-2025-06-10 23:09:57,631 p=45950 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml with ini plugin: Invalid host pattern 'plugin:' supplied, ending in ':' is not allowed,
+2025-06-11 13:34:41,268 p=74875 u=brinketu n=ansible INFO|   File "/opt/homebrew/Cellar/ansible/11.6.0_1/libexec/lib/python3.13/site-packages/ansible/inventory/manager.py", line 292, in parse_source
+    plugin.parse(self._inventory, self._loader, source, cache=cache)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/ansible/11.6.0_1/libexec/lib/python3.13/site-packages/ansible/plugins/inventory/yaml.py", line 113, in parse
+    raise AnsibleParserError('Plugin configuration YAML file, not YAML inventory')
+
+2025-06-11 13:34:41,268 p=74875 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml with constructed plugin: Incorrect plugin name in file: azure_rm
+
+2025-06-11 13:34:41,268 p=74875 u=brinketu n=ansible INFO|   File "/opt/homebrew/Cellar/ansible/11.6.0_1/libexec/lib/python3.13/site-packages/ansible/inventory/manager.py", line 292, in parse_source
+    plugin.parse(self._inventory, self._loader, source, cache=cache)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/ansible/11.6.0_1/libexec/lib/python3.13/site-packages/ansible/plugins/inventory/constructed.py", line 143, in parse
+    self._read_config_data(path)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/opt/homebrew/Cellar/ansible/11.6.0_1/libexec/lib/python3.13/site-packages/ansible/plugins/inventory/__init__.py", line 233, in _read_config_data
+    raise AnsibleParserError("Incorrect plugin name in file: %s" % config.get('plugin', 'none found'))
+
+2025-06-11 13:34:41,268 p=74875 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml with auto plugin: Could not add host ntop-tool_92d3 to group os_family: template error
+while templating string: expected token 'end of statement block', got '{'. String: {% if OS_{{ ansible_os_family }} %} True {% else %} False {% endif %}. expected token 'end of
+statement block', got '{'
+
+2025-06-11 13:34:41,268 p=74875 u=brinketu n=ansible INFO|   File "/opt/homebrew/Cellar/ansible/11.6.0_1/libexec/lib/python3.13/site-packages/ansible/inventory/manager.py", line 292, in parse_source
+    plugin.parse(self._inventory, self._loader, source, cache=cache)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/ansible/11.6.0_1/libexec/lib/python3.13/site-packages/ansible/plugins/inventory/auto.py", line 58, in parse
+    plugin.parse(inventory, loader, path, cache=cache)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brinketu/.ansible/collections/ansible_collections/azure/azcollection/plugins/inventory/azure_rm.py", line 220, in parse
+    self._get_hosts()
+    ~~~~~~~~~~~~~~~^^
+  File "/Users/brinketu/.ansible/collections/ansible_collections/azure/azcollection/plugins/inventory/azure_rm.py", line 303, in _get_hosts
+    self._add_host_to_composed_groups(constructable_config_groups, h.hostvars, inventory_hostname, strict=constructable_config_strict)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/ansible/11.6.0_1/libexec/lib/python3.13/site-packages/ansible/plugins/inventory/__init__.py", line 377, in _add_host_to_composed_groups
+    raise AnsibleParserError("Could not add host %s to group %s: %s" % (host, group_name, to_native(e)))
+
+2025-06-11 13:34:41,268 p=74875 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml with ini plugin: Invalid host pattern 'plugin:' supplied, ending in ':' is not allowed,
 this character is reserved to provide a port.
 
-2025-06-10 23:09:57,631 p=45950 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml with ansible_collections.azure.azcollection.plugins.inventory.azure_rm plugin: Failed to
-get credentials. Either pass as parameters, set environment variables, define a profile in ~/.azure/credentials, or install Azure CLI and log in (`az login`).
+2025-06-11 13:34:41,268 p=74875 u=brinketu n=ansible INFO|   File "/opt/homebrew/Cellar/ansible/11.6.0_1/libexec/lib/python3.13/site-packages/ansible/inventory/manager.py", line 292, in parse_source
+    plugin.parse(self._inventory, self._loader, source, cache=cache)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/ansible/11.6.0_1/libexec/lib/python3.13/site-packages/ansible/plugins/inventory/ini.py", line 137, in parse
+    raise AnsibleParserError(e)
 
-2025-06-10 23:09:57,631 p=45950 u=brinketu n=ansible WARNING| [WARNING]: Unable to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml as an inventory source
+2025-06-11 13:34:41,268 p=74875 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml with ansible_collections.azure.azcollection.plugins.inventory.azure_rm plugin: Could not
+add host ntop-tool_92d3 to group os_family: template error while templating string: expected token 'end of statement block', got '{'. String: {% if OS_{{ ansible_os_family }} %} True
+{% else %} False {% endif %}. expected token 'end of statement block', got '{'
 
-2025-06-10 23:09:57,631 p=45950 u=brinketu n=ansible WARNING| [WARNING]: No inventory was parsed, only implicit localhost is available
+2025-06-11 13:34:41,269 p=74875 u=brinketu n=ansible INFO|   File "/opt/homebrew/Cellar/ansible/11.6.0_1/libexec/lib/python3.13/site-packages/ansible/inventory/manager.py", line 292, in parse_source
+    plugin.parse(self._inventory, self._loader, source, cache=cache)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brinketu/.ansible/collections/ansible_collections/azure/azcollection/plugins/inventory/azure_rm.py", line 220, in parse
+    self._get_hosts()
+    ~~~~~~~~~~~~~~~^^
+  File "/Users/brinketu/.ansible/collections/ansible_collections/azure/azcollection/plugins/inventory/azure_rm.py", line 303, in _get_hosts
+    self._add_host_to_composed_groups(constructable_config_groups, h.hostvars, inventory_hostname, strict=constructable_config_strict)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/ansible/11.6.0_1/libexec/lib/python3.13/site-packages/ansible/plugins/inventory/__init__.py", line 377, in _add_host_to_composed_groups
+    raise AnsibleParserError("Could not add host %s to group %s: %s" % (host, group_name, to_native(e)))
 
-2025-06-10 23:09:57,634 p=45950 u=brinketu n=ansible INFO| {
+2025-06-11 13:34:41,269 p=74875 u=brinketu n=ansible WARNING| [WARNING]: Unable to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml as an inventory source
+
+2025-06-11 13:34:41,269 p=74875 u=brinketu n=ansible WARNING| [WARNING]: No inventory was parsed, only implicit localhost is available
+
+2025-06-11 13:34:41,272 p=74875 u=brinketu n=ansible INFO| {
     "_meta": {
         "hostvars": {}
     },
@@ -25,87 +486,326 @@ get credentials. Either pass as parameters, set environment variables, define a 
         ]
     }
 }
-2025-06-10 23:10:14,515 p=46167 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml with yaml plugin: Plugin configuration YAML file, not YAML inventory
+2025-06-11 13:34:59,117 p=75169 u=brinketu n=ansible INFO| ansible-inventory [core 2.18.6]
+  config file = /Users/brinketu/CloudlensFIle/Ansible/ansible.cfg
+  configured module search path = ['/Users/brinketu/.ansible/plugins/modules', '/usr/share/ansible/plugins/modules']
+  ansible python module location = /opt/homebrew/Cellar/ansible/11.6.0_1/libexec/lib/python3.13/site-packages/ansible
+  ansible collection location = /Users/brinketu/.ansible/collections:/usr/share/ansible/collections
+  executable location = /opt/homebrew/bin/ansible-inventory
+  python version = 3.13.4 (main, Jun  3 2025, 15:34:24) [Clang 17.0.0 (clang-1700.0.13.3)] (/opt/homebrew/Cellar/ansible/11.6.0_1/libexec/bin/python)
+  jinja version = 3.1.6
+  libyaml = True
+2025-06-11 13:34:59,118 p=75169 u=brinketu n=ansible INFO| Using /Users/brinketu/CloudlensFIle/Ansible/ansible.cfg as config file
+2025-06-11 13:34:59,161 p=75169 u=brinketu n=ansible INFO| redirecting (type: inventory) ansible.builtin.virtualbox to community.general.virtualbox
+2025-06-11 13:34:59,176 p=75169 u=brinketu n=ansible INFO| redirecting (type: inventory) ansible.builtin.aws_ec2 to amazon.aws.aws_ec2
+2025-06-11 13:34:59,294 p=75169 u=brinketu n=ansible INFO| redirecting (type: inventory) ansible.builtin.azure_rm to azure.azcollection.azure_rm
+2025-06-11 13:34:59,448 p=75169 u=brinketu n=ansible INFO| host_list declined parsing /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml as it did not pass its verify_file() method
+2025-06-11 13:34:59,448 p=75169 u=brinketu n=ansible INFO| ansible_collections.community.general.plugins.inventory.virtualbox declined parsing /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml as it did not pass its verify_file() method
+2025-06-11 13:34:59,452 p=75169 u=brinketu n=ansible INFO| redirecting (type: inventory) ansible.builtin.azure_rm to azure.azcollection.azure_rm
+2025-06-11 13:34:59,452 p=75169 u=brinketu n=ansible INFO| Using inventory plugin 'ansible_collections.azure.azcollection.plugins.inventory.azure_rm' to process inventory source '/Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml'
+2025-06-11 13:35:01,271 p=75169 u=brinketu n=ansible INFO| Parsed /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml inventory source with auto plugin
+2025-06-11 13:35:01,280 p=75169 u=brinketu n=ansible WARNING| [WARNING]: Found variable using reserved name: name
 
-2025-06-10 23:10:14,515 p=46167 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml with constructed plugin: Incorrect plugin name in file: azure_rm
+2025-06-11 13:35:01,280 p=75169 u=brinketu n=ansible WARNING| [WARNING]: Found variable using reserved name: tags
 
-2025-06-10 23:10:14,515 p=46167 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml with auto plugin: Failed to get credentials. Either pass as parameters, set environment
-variables, define a profile in ~/.azure/credentials, or install Azure CLI and log in (`az login`).
-
-2025-06-10 23:10:14,515 p=46167 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml with ini plugin: Invalid host pattern 'plugin:' supplied, ending in ':' is not allowed,
-this character is reserved to provide a port.
-
-2025-06-10 23:10:14,515 p=46167 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml with ansible_collections.azure.azcollection.plugins.inventory.azure_rm plugin: Failed to
-get credentials. Either pass as parameters, set environment variables, define a profile in ~/.azure/credentials, or install Azure CLI and log in (`az login`).
-
-2025-06-10 23:10:14,515 p=46167 u=brinketu n=ansible WARNING| [WARNING]: Unable to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml as an inventory source
-
-2025-06-10 23:10:14,515 p=46167 u=brinketu n=ansible WARNING| [WARNING]: No inventory was parsed, only implicit localhost is available
-
-2025-06-10 23:10:14,517 p=46167 u=brinketu n=ansible INFO| @all:
-  |--@ungrouped:
-2025-06-10 23:29:48,162 p=59390 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/azure_rm.yaml with yaml plugin: Plugin configuration YAML file, not YAML inventory
-
-2025-06-10 23:29:48,162 p=59390 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/azure_rm.yaml with constructed plugin: Incorrect plugin name in file: azure_rm
-
-2025-06-10 23:29:48,162 p=59390 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/azure_rm.yaml with auto plugin: Failed to get credentials. Either pass as parameters, set environment variables,
-define a profile in ~/.azure/credentials, or install Azure CLI and log in (`az login`).
-
-2025-06-10 23:29:48,162 p=59390 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/azure_rm.yaml with ini plugin: Invalid host pattern 'plugin:' supplied, ending in ':' is not allowed, this
-character is reserved to provide a port.
-
-2025-06-10 23:29:48,162 p=59390 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/azure_rm.yaml with ansible_collections.azure.azcollection.plugins.inventory.azure_rm plugin: Failed to get
-credentials. Either pass as parameters, set environment variables, define a profile in ~/.azure/credentials, or install Azure CLI and log in (`az login`).
-
-2025-06-10 23:29:48,163 p=59390 u=brinketu n=ansible WARNING| [WARNING]: Unable to parse /Users/brinketu/CloudlensFIle/Ansible/azure_rm.yaml as an inventory source
-
-2025-06-10 23:29:48,163 p=59390 u=brinketu n=ansible WARNING| [WARNING]: No inventory was parsed, only implicit localhost is available
-
-2025-06-10 23:29:48,165 p=59390 u=brinketu n=ansible INFO| @all:
-  |--@ungrouped:
-2025-06-10 23:30:02,117 p=59563 u=brinketu n=ansible WARNING| [WARNING]: Unable to parse /Users/brinketu/CloudlensFIle/Ansible/azure_rm.yaml as an inventory source
-
-2025-06-10 23:30:02,117 p=59563 u=brinketu n=ansible WARNING| [WARNING]: No inventory was parsed, only implicit localhost is available
-
-2025-06-10 23:30:02,119 p=59563 u=brinketu n=ansible INFO| @all:
-  |--@ungrouped:
-2025-06-10 23:31:09,172 p=60296 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml with yaml plugin: Plugin configuration YAML file, not YAML inventory
-
-2025-06-10 23:31:09,173 p=60296 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml with constructed plugin: Incorrect plugin name in file: azure_rm
-
-2025-06-10 23:31:09,173 p=60296 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml with auto plugin: Failed to get credentials. Either pass as parameters, set environment
-variables, define a profile in ~/.azure/credentials, or install Azure CLI and log in (`az login`).
-
-2025-06-10 23:31:09,173 p=60296 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml with ini plugin: Invalid host pattern 'plugin:' supplied, ending in ':' is not allowed,
-this character is reserved to provide a port.
-
-2025-06-10 23:31:09,173 p=60296 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml with ansible_collections.azure.azcollection.plugins.inventory.azure_rm plugin: Failed to
-get credentials. Either pass as parameters, set environment variables, define a profile in ~/.azure/credentials, or install Azure CLI and log in (`az login`).
-
-2025-06-10 23:31:09,173 p=60296 u=brinketu n=ansible WARNING| [WARNING]: Unable to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml as an inventory source
-
-2025-06-10 23:31:09,173 p=60296 u=brinketu n=ansible WARNING| [WARNING]: No inventory was parsed, only implicit localhost is available
-
-2025-06-10 23:31:09,175 p=60296 u=brinketu n=ansible INFO| @all:
-  |--@ungrouped:
-2025-06-10 23:39:01,934 p=65244 u=brinketu n=ansible INFO| Starting galaxy collection install process
-2025-06-10 23:39:02,020 p=65244 u=brinketu n=ansible INFO| Nothing to do. All requested collections are already installed. If you want to reinstall them, consider using `--force`.
-2025-06-10 23:39:37,765 p=65616 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml with yaml plugin: Plugin configuration YAML file, not YAML inventory
-
-2025-06-10 23:39:37,766 p=65616 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml with constructed plugin: Incorrect plugin name in file: azure_rm
-
-2025-06-10 23:39:37,766 p=65616 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml with auto plugin: Failed to get credentials. Either pass as parameters, set environment
-variables, define a profile in ~/.azure/credentials, or install Azure CLI and log in (`az login`).
-
-2025-06-10 23:39:37,766 p=65616 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml with ini plugin: Invalid host pattern 'plugin:' supplied, ending in ':' is not allowed,
-this character is reserved to provide a port.
-
-2025-06-10 23:39:37,766 p=65616 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml with ansible_collections.azure.azcollection.plugins.inventory.azure_rm plugin: Failed to
-get credentials. Either pass as parameters, set environment variables, define a profile in ~/.azure/credentials, or install Azure CLI and log in (`az login`).
-
-2025-06-10 23:39:37,766 p=65616 u=brinketu n=ansible WARNING| [WARNING]: Unable to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml as an inventory source
-
-2025-06-10 23:39:37,766 p=65616 u=brinketu n=ansible WARNING| [WARNING]: No inventory was parsed, only implicit localhost is available
-
-2025-06-10 23:39:37,768 p=65616 u=brinketu n=ansible INFO| @all:
-  |--@ungrouped:
+2025-06-11 13:35:01,283 p=75169 u=brinketu n=ansible INFO| {
+    "_meta": {
+        "hostvars": {
+            "RHELVM-0_1c54": {
+                "ansible_host": "172.203.17.204",
+                "auto_update": "yes",
+                "availability_zone": null,
+                "ca_cert_dir": "/etc/ssl/certs",
+                "cloudlens_agent_container_name": "cloudlens-agent",
+                "cloudlens_installer_filename": "cloudlens-win-sensor-6.11.1.302.exe",
+                "cloudlens_manager_ip_or_FQDN": "20.12.10.80",
+                "computer_name": "RHELVM-0",
+                "custom_tags": "Env=Azure Region=US-East2",
+                "data_disks": [],
+                "default_inventory_hostname": "RHELVM-0_1c54",
+                "id": "/subscriptions/16e5b426-6372-4975-908a-e4cc44ee3cab/resourceGroups/BrineK/providers/Microsoft.Compute/virtualMachines/RHELVM-0",
+                "image": {
+                    "offer": "RHEL",
+                    "publisher": "RedHat",
+                    "sku": "8-LVM",
+                    "version": "latest"
+                },
+                "local_ca_path": "/Users/brinketu/NewCerts/cloudlenscerts.crt",
+                "local_installer_path": "/Users/brinketu/Downloads/cloudlens-win-sensor-6.11.1.302.exe",
+                "location": "eastus2",
+                "log_max_file": "5",
+                "log_max_size": "50m",
+                "mac_address": "60-45-BD-B3-46-0F",
+                "name": "RHELVM-0",
+                "network_interface": "RHELNIC-0",
+                "network_interface_id": "/subscriptions/16e5b426-6372-4975-908a-e4cc44ee3cab/resourceGroups/BrineK/providers/Microsoft.Network/networkInterfaces/RHELNIC-0",
+                "os_disk": {
+                    "id": "/subscriptions/16e5b426-6372-4975-908a-e4cc44ee3cab/resourceGroups/BrineK/providers/Microsoft.Compute/disks/RHELVM-0_OsDisk_1_9580b16016854589a77d5a36ebeed275",
+                    "name": "RHELVM-0_OsDisk_1_9580b16016854589a77d5a36ebeed275",
+                    "operating_system_type": "linux"
+                },
+                "os_profile": {
+                    "system": "linux"
+                },
+                "plan": null,
+                "powerstate": "running",
+                "private_ipv4_addresses": [
+                    "10.0.1.5"
+                ],
+                "project_key": "c09b143bedd64a7fb3f0b138a409ff66",
+                "provisioning_state": "succeeded",
+                "public_dns_hostnames": [],
+                "public_ip_id": "/subscriptions/16e5b426-6372-4975-908a-e4cc44ee3cab/resourceGroups/BrineK/providers/Microsoft.Network/publicIPAddresses/RHELPublicIP-0",
+                "public_ip_name": "RHELPublicIP-0",
+                "public_ipv4_addresses": [
+                    "172.203.17.204"
+                ],
+                "registry_type": "insecure",
+                "resource_group": "brinek",
+                "resource_type": "Microsoft.Compute/virtualMachines",
+                "security_group": null,
+                "security_group_id": null,
+                "ssl_verify": "no",
+                "tags": {
+                    "Env": "Development",
+                    "Name": "RHELVM-0"
+                },
+                "virtual_machine_size": "Standard_D4s_v3",
+                "vmid": "5314624e-9d88-4840-a07e-f48aa38c9037",
+                "vmss": {}
+            },
+            "UbuntuVM-0_d442": {
+                "ansible_host": "172.210.175.10",
+                "auto_update": "yes",
+                "availability_zone": null,
+                "ca_cert_dir": "/etc/ssl/certs",
+                "cloudlens_agent_container_name": "cloudlens-agent",
+                "cloudlens_installer_filename": "cloudlens-win-sensor-6.11.1.302.exe",
+                "cloudlens_manager_ip_or_FQDN": "20.12.10.80",
+                "computer_name": "UbuntuVM-0",
+                "custom_tags": "Env=Azure Region=US-East2",
+                "data_disks": [],
+                "default_inventory_hostname": "UbuntuVM-0_d442",
+                "id": "/subscriptions/16e5b426-6372-4975-908a-e4cc44ee3cab/resourceGroups/BrineK/providers/Microsoft.Compute/virtualMachines/UbuntuVM-0",
+                "image": {
+                    "offer": "0001-com-ubuntu-server-focal",
+                    "publisher": "Canonical",
+                    "sku": "20_04-lts",
+                    "version": "latest"
+                },
+                "local_ca_path": "/Users/brinketu/NewCerts/cloudlenscerts.crt",
+                "local_installer_path": "/Users/brinketu/Downloads/cloudlens-win-sensor-6.11.1.302.exe",
+                "location": "eastus2",
+                "log_max_file": "5",
+                "log_max_size": "50m",
+                "mac_address": "60-45-BD-B7-B9-C1",
+                "name": "UbuntuVM-0",
+                "network_interface": "UbuntuNIC-0",
+                "network_interface_id": "/subscriptions/16e5b426-6372-4975-908a-e4cc44ee3cab/resourceGroups/BrineK/providers/Microsoft.Network/networkInterfaces/UbuntuNIC-0",
+                "os_disk": {
+                    "id": "/subscriptions/16e5b426-6372-4975-908a-e4cc44ee3cab/resourceGroups/BrineK/providers/Microsoft.Compute/disks/UbuntuVM-0_OsDisk_1_2d2fbf027cc843eb966b7694c04524da",
+                    "name": "UbuntuVM-0_OsDisk_1_2d2fbf027cc843eb966b7694c04524da",
+                    "operating_system_type": "linux"
+                },
+                "os_profile": {
+                    "system": "linux"
+                },
+                "plan": null,
+                "powerstate": "running",
+                "private_ipv4_addresses": [
+                    "10.0.1.7"
+                ],
+                "project_key": "c09b143bedd64a7fb3f0b138a409ff66",
+                "provisioning_state": "succeeded",
+                "public_dns_hostnames": [],
+                "public_ip_id": "/subscriptions/16e5b426-6372-4975-908a-e4cc44ee3cab/resourceGroups/BrineK/providers/Microsoft.Network/publicIPAddresses/UbuntuPublicIP-0",
+                "public_ip_name": "UbuntuPublicIP-0",
+                "public_ipv4_addresses": [
+                    "172.210.175.10"
+                ],
+                "registry_type": "insecure",
+                "resource_group": "brinek",
+                "resource_type": "Microsoft.Compute/virtualMachines",
+                "security_group": null,
+                "security_group_id": null,
+                "ssl_verify": "no",
+                "tags": {
+                    "Env": "Development",
+                    "Name": "UbuntuVM-0"
+                },
+                "virtual_machine_size": "Standard_D4s_v3",
+                "vmid": "bb32abef-733f-46ec-86ac-599ef2b732e5",
+                "vmss": {}
+            },
+            "WindowsVM-0_6d81": {
+                "ansible_host": "135.119.179.243",
+                "auto_update": "yes",
+                "availability_zone": null,
+                "ca_cert_dir": "/etc/ssl/certs",
+                "cloudlens_agent_container_name": "cloudlens-agent",
+                "cloudlens_installer_filename": "cloudlens-win-sensor-6.11.1.302.exe",
+                "cloudlens_manager_ip_or_FQDN": "20.12.10.80",
+                "computer_name": "WindowsVM-0",
+                "custom_tags": "Env=Azure Region=US-East2",
+                "data_disks": [],
+                "default_inventory_hostname": "WindowsVM-0_6d81",
+                "id": "/subscriptions/16e5b426-6372-4975-908a-e4cc44ee3cab/resourceGroups/BrineK/providers/Microsoft.Compute/virtualMachines/WindowsVM-0",
+                "image": {
+                    "offer": "WindowsServer",
+                    "publisher": "MicrosoftWindowsServer",
+                    "sku": "2019-Datacenter",
+                    "version": "latest"
+                },
+                "local_ca_path": "/Users/brinketu/NewCerts/cloudlenscerts.crt",
+                "local_installer_path": "/Users/brinketu/Downloads/cloudlens-win-sensor-6.11.1.302.exe",
+                "location": "eastus2",
+                "log_max_file": "5",
+                "log_max_size": "50m",
+                "mac_address": "7C-1E-52-D7-BA-C3",
+                "name": "WindowsVM-0",
+                "network_interface": "WindowsNIC-0",
+                "network_interface_id": "/subscriptions/16e5b426-6372-4975-908a-e4cc44ee3cab/resourceGroups/BrineK/providers/Microsoft.Network/networkInterfaces/WindowsNIC-0",
+                "os_disk": {
+                    "id": "/subscriptions/16e5b426-6372-4975-908a-e4cc44ee3cab/resourceGroups/BrineK/providers/Microsoft.Compute/disks/WindowsVM-0_OsDisk_1_c5cf314990c1435fa27357c65c219ddc",
+                    "name": "WindowsVM-0_OsDisk_1_c5cf314990c1435fa27357c65c219ddc",
+                    "operating_system_type": "windows"
+                },
+                "os_profile": {
+                    "system": "windows"
+                },
+                "plan": null,
+                "powerstate": "running",
+                "private_ipv4_addresses": [
+                    "10.0.1.4"
+                ],
+                "project_key": "c09b143bedd64a7fb3f0b138a409ff66",
+                "provisioning_state": "succeeded",
+                "public_dns_hostnames": [],
+                "public_ip_id": "/subscriptions/16e5b426-6372-4975-908a-e4cc44ee3cab/resourceGroups/BrineK/providers/Microsoft.Network/publicIPAddresses/WindowsPublicIP-0",
+                "public_ip_name": "WindowsPublicIP-0",
+                "public_ipv4_addresses": [
+                    "135.119.179.243"
+                ],
+                "registry_type": "insecure",
+                "resource_group": "brinek",
+                "resource_type": "Microsoft.Compute/virtualMachines",
+                "security_group": null,
+                "security_group_id": null,
+                "ssl_verify": "no",
+                "tags": {
+                    "Env": "Development",
+                    "Name": "WindowsVM-0"
+                },
+                "virtual_machine_size": "Standard_D4s_v3",
+                "vmid": "d140d957-909e-469c-a570-8e543ad3cb5a",
+                "vmss": {}
+            },
+            "ntop-tool_92d3": {
+                "ansible_host": "172.210.167.40",
+                "auto_update": "yes",
+                "availability_zone": null,
+                "ca_cert_dir": "/etc/ssl/certs",
+                "cloudlens_agent_container_name": "cloudlens-agent",
+                "cloudlens_installer_filename": "cloudlens-win-sensor-6.11.1.302.exe",
+                "cloudlens_manager_ip_or_FQDN": "20.12.10.80",
+                "computer_name": "ntop-tool",
+                "custom_tags": "Env=Azure Region=US-East2",
+                "data_disks": [],
+                "default_inventory_hostname": "ntop-tool_92d3",
+                "id": "/subscriptions/16e5b426-6372-4975-908a-e4cc44ee3cab/resourceGroups/BrineK/providers/Microsoft.Compute/virtualMachines/ntop-tool",
+                "image": {
+                    "offer": "0001-com-ubuntu-server-focal",
+                    "publisher": "Canonical",
+                    "sku": "20_04-lts",
+                    "version": "latest"
+                },
+                "local_ca_path": "/Users/brinketu/NewCerts/cloudlenscerts.crt",
+                "local_installer_path": "/Users/brinketu/Downloads/cloudlens-win-sensor-6.11.1.302.exe",
+                "location": "eastus2",
+                "log_max_file": "5",
+                "log_max_size": "50m",
+                "mac_address": "7C-1E-52-B3-45-23",
+                "name": "ntop-tool",
+                "network_interface": "ntopToolNIC",
+                "network_interface_id": "/subscriptions/16e5b426-6372-4975-908a-e4cc44ee3cab/resourceGroups/BrineK/providers/Microsoft.Network/networkInterfaces/ntopToolNIC",
+                "os_disk": {
+                    "id": "/subscriptions/16e5b426-6372-4975-908a-e4cc44ee3cab/resourceGroups/BrineK/providers/Microsoft.Compute/disks/ntop-tool_OsDisk_1_e0bed98c9bdf47a0a6f4c0ea6729e2be",
+                    "name": "ntop-tool_OsDisk_1_e0bed98c9bdf47a0a6f4c0ea6729e2be",
+                    "operating_system_type": "linux"
+                },
+                "os_profile": {
+                    "system": "linux"
+                },
+                "plan": null,
+                "powerstate": "running",
+                "private_ipv4_addresses": [
+                    "10.0.1.6"
+                ],
+                "project_key": "c09b143bedd64a7fb3f0b138a409ff66",
+                "provisioning_state": "succeeded",
+                "public_dns_hostnames": [],
+                "public_ip_id": "/subscriptions/16e5b426-6372-4975-908a-e4cc44ee3cab/resourceGroups/BrineK/providers/Microsoft.Network/publicIPAddresses/ntopToolPublicIP",
+                "public_ip_name": "ntopToolPublicIP",
+                "public_ipv4_addresses": [
+                    "172.210.167.40"
+                ],
+                "registry_type": "insecure",
+                "resource_group": "brinek",
+                "resource_type": "Microsoft.Compute/virtualMachines",
+                "security_group": null,
+                "security_group_id": null,
+                "ssl_verify": "no",
+                "tags": {
+                    "Name": "ntop-tool",
+                    "Role": "Monitoring"
+                },
+                "virtual_machine_size": "Standard_D4s_v3",
+                "vmid": "8a6c6f09-c622-44c2-94ce-eca198b36995",
+                "vmss": {}
+            }
+        }
+    },
+    "all": {
+        "children": [
+            "ungrouped",
+            "tag_Name_ntop_tool",
+            "tag_Role_Monitoring",
+            "tag_Env_Development",
+            "tag_Name_RHELVM_0",
+            "tag_Name_UbuntuVM_0",
+            "tag_Name_WindowsVM_0"
+        ]
+    },
+    "tag_Env_Development": {
+        "hosts": [
+            "RHELVM-0_1c54",
+            "UbuntuVM-0_d442",
+            "WindowsVM-0_6d81"
+        ]
+    },
+    "tag_Name_RHELVM_0": {
+        "hosts": [
+            "RHELVM-0_1c54"
+        ]
+    },
+    "tag_Name_UbuntuVM_0": {
+        "hosts": [
+            "UbuntuVM-0_d442"
+        ]
+    },
+    "tag_Name_WindowsVM_0": {
+        "hosts": [
+            "WindowsVM-0_6d81"
+        ]
+    },
+    "tag_Name_ntop_tool": {
+        "hosts": [
+            "ntop-tool_92d3"
+        ]
+    },
+    "tag_Role_Monitoring": {
+        "hosts": [
+            "ntop-tool_92d3"
+        ]
+    }
+}
