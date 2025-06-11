@@ -1,11 +1,6 @@
 - name: Undo CloudLens Agent Deployment from Red Hat VMs with Podman
   hosts: redhat_vms
   become: yes
-  vars_files:
-    - variables.yaml
-  vars:
-    podman_command: podman
-    ca_cert_dir: "/etc/pki/ca-trust/source/anchors"
 
   tasks:
     - name: Gather facts about the system

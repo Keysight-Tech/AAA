@@ -1,8 +1,6 @@
 - name: Cleanup CloudLens Agent and Docker from Ubuntu VMs
   hosts: ubuntu_vms
   become: yes
-  vars:
-    registry_type: "insecure"  # Change to "insecure" if applicable
 
   tasks:
     - name: Stop and remove CloudLens agent container if exists

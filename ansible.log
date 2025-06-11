@@ -1,0 +1,111 @@
+2025-06-10 23:09:57,630 p=45950 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml with yaml plugin: Plugin configuration YAML file, not YAML inventory
+
+2025-06-10 23:09:57,630 p=45950 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml with constructed plugin: Incorrect plugin name in file: azure_rm
+
+2025-06-10 23:09:57,630 p=45950 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml with auto plugin: Failed to get credentials. Either pass as parameters, set environment
+variables, define a profile in ~/.azure/credentials, or install Azure CLI and log in (`az login`).
+
+2025-06-10 23:09:57,631 p=45950 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml with ini plugin: Invalid host pattern 'plugin:' supplied, ending in ':' is not allowed,
+this character is reserved to provide a port.
+
+2025-06-10 23:09:57,631 p=45950 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml with ansible_collections.azure.azcollection.plugins.inventory.azure_rm plugin: Failed to
+get credentials. Either pass as parameters, set environment variables, define a profile in ~/.azure/credentials, or install Azure CLI and log in (`az login`).
+
+2025-06-10 23:09:57,631 p=45950 u=brinketu n=ansible WARNING| [WARNING]: Unable to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml as an inventory source
+
+2025-06-10 23:09:57,631 p=45950 u=brinketu n=ansible WARNING| [WARNING]: No inventory was parsed, only implicit localhost is available
+
+2025-06-10 23:09:57,634 p=45950 u=brinketu n=ansible INFO| {
+    "_meta": {
+        "hostvars": {}
+    },
+    "all": {
+        "children": [
+            "ungrouped"
+        ]
+    }
+}
+2025-06-10 23:10:14,515 p=46167 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml with yaml plugin: Plugin configuration YAML file, not YAML inventory
+
+2025-06-10 23:10:14,515 p=46167 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml with constructed plugin: Incorrect plugin name in file: azure_rm
+
+2025-06-10 23:10:14,515 p=46167 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml with auto plugin: Failed to get credentials. Either pass as parameters, set environment
+variables, define a profile in ~/.azure/credentials, or install Azure CLI and log in (`az login`).
+
+2025-06-10 23:10:14,515 p=46167 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml with ini plugin: Invalid host pattern 'plugin:' supplied, ending in ':' is not allowed,
+this character is reserved to provide a port.
+
+2025-06-10 23:10:14,515 p=46167 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml with ansible_collections.azure.azcollection.plugins.inventory.azure_rm plugin: Failed to
+get credentials. Either pass as parameters, set environment variables, define a profile in ~/.azure/credentials, or install Azure CLI and log in (`az login`).
+
+2025-06-10 23:10:14,515 p=46167 u=brinketu n=ansible WARNING| [WARNING]: Unable to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml as an inventory source
+
+2025-06-10 23:10:14,515 p=46167 u=brinketu n=ansible WARNING| [WARNING]: No inventory was parsed, only implicit localhost is available
+
+2025-06-10 23:10:14,517 p=46167 u=brinketu n=ansible INFO| @all:
+  |--@ungrouped:
+2025-06-10 23:29:48,162 p=59390 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/azure_rm.yaml with yaml plugin: Plugin configuration YAML file, not YAML inventory
+
+2025-06-10 23:29:48,162 p=59390 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/azure_rm.yaml with constructed plugin: Incorrect plugin name in file: azure_rm
+
+2025-06-10 23:29:48,162 p=59390 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/azure_rm.yaml with auto plugin: Failed to get credentials. Either pass as parameters, set environment variables,
+define a profile in ~/.azure/credentials, or install Azure CLI and log in (`az login`).
+
+2025-06-10 23:29:48,162 p=59390 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/azure_rm.yaml with ini plugin: Invalid host pattern 'plugin:' supplied, ending in ':' is not allowed, this
+character is reserved to provide a port.
+
+2025-06-10 23:29:48,162 p=59390 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/azure_rm.yaml with ansible_collections.azure.azcollection.plugins.inventory.azure_rm plugin: Failed to get
+credentials. Either pass as parameters, set environment variables, define a profile in ~/.azure/credentials, or install Azure CLI and log in (`az login`).
+
+2025-06-10 23:29:48,163 p=59390 u=brinketu n=ansible WARNING| [WARNING]: Unable to parse /Users/brinketu/CloudlensFIle/Ansible/azure_rm.yaml as an inventory source
+
+2025-06-10 23:29:48,163 p=59390 u=brinketu n=ansible WARNING| [WARNING]: No inventory was parsed, only implicit localhost is available
+
+2025-06-10 23:29:48,165 p=59390 u=brinketu n=ansible INFO| @all:
+  |--@ungrouped:
+2025-06-10 23:30:02,117 p=59563 u=brinketu n=ansible WARNING| [WARNING]: Unable to parse /Users/brinketu/CloudlensFIle/Ansible/azure_rm.yaml as an inventory source
+
+2025-06-10 23:30:02,117 p=59563 u=brinketu n=ansible WARNING| [WARNING]: No inventory was parsed, only implicit localhost is available
+
+2025-06-10 23:30:02,119 p=59563 u=brinketu n=ansible INFO| @all:
+  |--@ungrouped:
+2025-06-10 23:31:09,172 p=60296 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml with yaml plugin: Plugin configuration YAML file, not YAML inventory
+
+2025-06-10 23:31:09,173 p=60296 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml with constructed plugin: Incorrect plugin name in file: azure_rm
+
+2025-06-10 23:31:09,173 p=60296 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml with auto plugin: Failed to get credentials. Either pass as parameters, set environment
+variables, define a profile in ~/.azure/credentials, or install Azure CLI and log in (`az login`).
+
+2025-06-10 23:31:09,173 p=60296 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml with ini plugin: Invalid host pattern 'plugin:' supplied, ending in ':' is not allowed,
+this character is reserved to provide a port.
+
+2025-06-10 23:31:09,173 p=60296 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml with ansible_collections.azure.azcollection.plugins.inventory.azure_rm plugin: Failed to
+get credentials. Either pass as parameters, set environment variables, define a profile in ~/.azure/credentials, or install Azure CLI and log in (`az login`).
+
+2025-06-10 23:31:09,173 p=60296 u=brinketu n=ansible WARNING| [WARNING]: Unable to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml as an inventory source
+
+2025-06-10 23:31:09,173 p=60296 u=brinketu n=ansible WARNING| [WARNING]: No inventory was parsed, only implicit localhost is available
+
+2025-06-10 23:31:09,175 p=60296 u=brinketu n=ansible INFO| @all:
+  |--@ungrouped:
+2025-06-10 23:39:01,934 p=65244 u=brinketu n=ansible INFO| Starting galaxy collection install process
+2025-06-10 23:39:02,020 p=65244 u=brinketu n=ansible INFO| Nothing to do. All requested collections are already installed. If you want to reinstall them, consider using `--force`.
+2025-06-10 23:39:37,765 p=65616 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml with yaml plugin: Plugin configuration YAML file, not YAML inventory
+
+2025-06-10 23:39:37,766 p=65616 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml with constructed plugin: Incorrect plugin name in file: azure_rm
+
+2025-06-10 23:39:37,766 p=65616 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml with auto plugin: Failed to get credentials. Either pass as parameters, set environment
+variables, define a profile in ~/.azure/credentials, or install Azure CLI and log in (`az login`).
+
+2025-06-10 23:39:37,766 p=65616 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml with ini plugin: Invalid host pattern 'plugin:' supplied, ending in ':' is not allowed,
+this character is reserved to provide a port.
+
+2025-06-10 23:39:37,766 p=65616 u=brinketu n=ansible WARNING| [WARNING]:  * Failed to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml with ansible_collections.azure.azcollection.plugins.inventory.azure_rm plugin: Failed to
+get credentials. Either pass as parameters, set environment variables, define a profile in ~/.azure/credentials, or install Azure CLI and log in (`az login`).
+
+2025-06-10 23:39:37,766 p=65616 u=brinketu n=ansible WARNING| [WARNING]: Unable to parse /Users/brinketu/CloudlensFIle/Ansible/inventory/azure_rm.yaml as an inventory source
+
+2025-06-10 23:39:37,766 p=65616 u=brinketu n=ansible WARNING| [WARNING]: No inventory was parsed, only implicit localhost is available
+
+2025-06-10 23:39:37,768 p=65616 u=brinketu n=ansible INFO| @all:
+  |--@ungrouped:

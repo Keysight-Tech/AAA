@@ -1,0 +1,13 @@
+plugin: azure_rm
+auth_source: auto
+subscription_id: "16e5b426-6372-4975-908a-e4cc44ee3cab"
+include_vm_resource_groups:
+  - BrineK
+
+# conditional_groups:
+#   os_family: "OS_{{ ansible_os_family }}"
+
+keyed_groups:
+  - prefix: tag
+    key: tags
+    separator: "_"
