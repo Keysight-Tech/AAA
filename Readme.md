@@ -52,43 +52,59 @@ For large-scale infrastructure:
 
 ## 🔧 Prerequisites
 
-### Install Ansible on Your Mac, Linux, or WSL Host
 
-#### macOS
+## Install Ansible on Your PC ( Control Node) ====> 📘 **[Install Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)**
 
+> **⚠️ Please Note:**  
+> If you have **SELinux** enabled on remote nodes, you will also want to install **`libselinux-python`** on them **before using any `copy`/`file`/`template`-related functions in Ansible**.  
+> 
+> You can use the `yum` or `dnf` module in Ansible to install this package on remote systems that do not have it.
 
-```bash
-brew install ansible
+---
 
+📚 **Related References:**
 
-### Ubuntu / Debian Linux
-```bash
-sudo apt update
-sudo apt install -y ansible
-```
+- [RHEL/CentOS libselinux-python Package Info](https://centos.pkgs.org/7/centos-x86_64/libselinux-python-2.5-15.el7.x86_64.rpm.html)  
+- [How to Manage SELinux in Ansible (Red Hat Guide)](https://access.redhat.com/solutions/2317631)
 
-### RHEL / CentOS Linux
-```bash
-sudo yum install -y epel-release
-sudo yum install -y ansible
-```
+## Depending on your Target ENV (AWS, Azure, GCP, etc), install Ansible Galaxy collections for dynamic inventory and resource automation
 
-### Windows (via WSL or Virtual Environment)
-1. Install WSL (Windows Subsystem for Linux)
-2. Launch a WSL terminal (Ubuntu recommended)
-3. Run:
-```bash
-sudo apt update
-sudo apt install -y ansible
-```
+- **[Azure – azcollection](https://galaxy.ansible.com/ui/repo/published/azure/azcollection/)**  
+  For managing Azure infrastructure with the `azure_rm` inventory plugin and Azure modules.
 
-## Install Ansible Azure Collection and Azure Identity SDK
+- **[AWS – amazon.aws](https://galaxy.ansible.com/ui/repo/published/amazon/aws/)**  
+  Supports dynamic inventory using the `aws_ec2` plugin and AWS resource automation.
 
-1. Install the Ansible Azure Collection:
-   ```bash
-   ansible-galaxy collection install azure.azcollection:1.11.0
+- **[GCP – google.cloud](https://galaxy.ansible.com/ui/repo/published/google/cloud/)**  
+  Integrates with GCP using the `gcp_compute` inventory plugin and GCP modules.
 
-# install azure identity
+- **[VMware – community.vmware](https://galaxy.ansible.com/ui/repo/published/community/vmware/)**  
+  For orchestrating vSphere/ESXi environments and using dynamic inventory via `vmware_vm_inventory`.
+
+- **[OpenStack – openstack.cloud](https://galaxy.ansible.com/ui/repo/published/openstack/cloud/)**  
+  Enables provisioning and dynamic inventory of OpenStack workloads.
+
+- **[Kubernetes – kubernetes.core](https://galaxy.ansible.com/ui/repo/published/kubernetes/core/)**  
+  Manages Kubernetes resources and supports dynamic inventory for clusters.
+
+- **[Red Hat – redhat.rhel_system_roles](https://galaxy.ansible.com/ui/repo/published/redhat/rhel_system_roles/)**  
+  For managing RHEL systems in cloud or hybrid environments using predefined system roles.
+
+- **[Community General – community.general](https://galaxy.ansible.com/ui/repo/published/community/general/)**  
+  A catch-all collection for many infrastructure plugins, including legacy inventory methods.
+
+- **[OCI (Oracle Cloud) – oracle.oci](https://galaxy.ansible.com/ui/repo/published/oracle/oci/)**  
+  For Oracle Cloud Infrastructure automation and dynamic inventory.
+
+- **[IBM Cloud – ibm.cloudcollection](https://galaxy.ansible.com/ui/repo/published/ibm/cloudcollection/)**  
+  For interacting with IBM Cloud services.
+
+- **[Alibaba Cloud – alibaba.cloud](https://galaxy.ansible.com/ui/repo/published/alibaba/cloud/)**  
+  Supports Alibaba Cloud automation and inventory.
+
+  
+
+### ✅ Install Azure Identity SDK
 
 ```
 pip install azure-identity
@@ -99,16 +115,17 @@ pip install azure-identity
 python3 -c "from azure.identity import AzureCliCredential; print(AzureCliCredential().get_token('https://management.azure.com/.default'))"
 
 
-# Install Azure CLI
+## 🧰 CLI Installation Links for Major Cloud Providers
 
-```
-brew install azure-cli
-```
+- **[Install Azure CLI (All Platforms)](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)**
+- **[Install AWS CLI (All Platforms)](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html)**
+- **[Install Google Cloud SDK (gcloud CLI)](https://cloud.google.com/sdk/docs/install)**
+- **[Install Oracle Cloud CLI (OCI CLI)](https://docs.oracle.com/en-us/iaas/Content/API/SDKDocs/cliinstall.htm)**
+- **[Install IBM Cloud CLI](https://cloud.ibm.com/docs/cli?topic=cli-install-ibmcloud-cli)**
+- **[Install Alibaba Cloud CLI](https://www.alibabacloud.com/help/en/developer-reference/install-the-alibaba-cloud-cli)**
+- **[Install OpenStack CLI (Python OpenStackClient)](https://docs.openstack.org/python-openstackclient/latest/install/index.html)**
+- **[Install VMware vSphere CLI](https://developer.vmware.com/docs/11758/vsphere-cli-7-0-u3c)**
 
-# Install Azure Identity SDK
-```
-pip install azure-identity
-```
 
 ### Linux VMs
 
@@ -145,7 +162,7 @@ ansible-playbook -i inventory/ playbooks/ubuntu.yaml --limit ubuntu_prod_vms  -v
 ### RHEL/CentOS Deployment
 ```bash
 
-ansible rhel_prod_vms -i inventory/ -m ping #test connection
+ansible redhat_prod_vms -i inventory/ -m raw -a "echo OK" -vvv #test connection
 
 ansible-playbook -i inventory/ playbooks/redhat.yaml --limit redhat_prod_vms  -vvv #deploy
 ```
@@ -155,7 +172,7 @@ ansible-playbook -i inventory/ playbooks/redhat.yaml --limit redhat_prod_vms  -v
 
 ansible windows_prod_vms -i inventory/ -m win_ping #test connection
 
-ansible-playbook -i inventory/ playbooks/ubuntu.yaml --limit windows_prod_vms  -vvv #deploy
+ansible-playbook -i inventory/ playbooks/windows.yaml --limit windows_prod_vms  -vvv #deploy
 ```
 
 ### Cleanup - Ubuntu

@@ -8,4 +8,7 @@ include_vm_resource_groups:
 keyed_groups:
   - prefix: tag
     key: tags
-
+    separator: _
+    filter:
+      - "OS"
+      - "Env"
