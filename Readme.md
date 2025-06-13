@@ -156,15 +156,15 @@ history
 
 ansible ubuntu_prod_vms -i inventory/ -m ping #test connections to ubuntu vms
 
-ansible-playbook -i inventory/ playbooks/ubuntu.yaml --limit ubuntu_prod_vms  -vvv #deploy
+ansible-playbook -i inventory/ playbooks/ubuntu.yaml --limit ubuntu_prod_vms   #deploy
 ```
 
 ### RHEL/CentOS Deployment
 ```bash
 
-ansible redhat_prod_vms -i inventory/ -m raw -a "echo OK" -vvv #test connection
+ansible redhat_prod_vms -i inventory/ -m raw -a "echo OK"  #test connection
 
-ansible-playbook -i inventory/ playbooks/redhat.yaml --limit redhat_prod_vms  -vvv #deploy
+ansible-playbook -i inventory/ playbooks/redhat.yaml --limit redhat_prod_vms  #deploy
 ```
 
 ### Windows Deployment
@@ -172,22 +172,22 @@ ansible-playbook -i inventory/ playbooks/redhat.yaml --limit redhat_prod_vms  -v
 
 ansible windows_prod_vms -i inventory/ -m win_ping #test connection
 
-ansible-playbook -i inventory/ playbooks/windows.yaml --limit windows_prod_vms  -vvv #deploy
+ansible-playbook -i inventory/ playbooks/windows.yaml --limit windows_prod_vms  #deploy
 ```
 
 ### Cleanup - Ubuntu
 ```bash
-ansible-playbook -i inventory/ playbooks/ubuntu_cleanup.yaml --limit ubuntu_prod_vms  -vvv
+ansible-playbook -i inventory/ playbooks/ubuntu_cleanup.yaml --limit ubuntu_prod_vms  
 ```
 
 ### Cleanup - RHEL/CentOS
 ```bash
-ansible-playbook -i inventory/ playbooks/redhat_cleanup.yaml --limit redhat_prod_vms  -vvv
+ansible-playbook -i inventory/ playbooks/redhat_cleanup.yaml --limit redhat_prod_vms  
 ```
 
 ### Cleanup - Windows
 ```bash
-ansible-playbook -i inventory/ playbooks/windows_cleanup.yaml --limit windows_prod_vms  -vvv
+ansible-playbook -i inventory/ playbooks/windows_cleanup.yaml --limit windows_prod_vms  
 ```
 
 ---
