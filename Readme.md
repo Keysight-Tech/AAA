@@ -136,6 +136,15 @@ pip3 install msrestazure==0.6.4
 pip3 install azure-mgmt-storage==21.0.0
 pip3 install azure-mgmt-keyvault==10.2.3
 
+### 3.3 Install WinRM Dependencies for Windows VM Management ====> 📘 **[Ansible Windows Guide](https://docs.ansible.com/ansible/latest/os_guide/windows_winrm.html#windows-winrm)**
+
+```bash
+# Core WinRM libraries (Required for Windows VM management)
+pip3 install pywinrm==0.4.3
+pip3 install requests-ntlm==1.2.0
+pip3 install xmltodict==0.13.0
+```
+
 ### 3.3 Install Azure Ansible Collection ====> 📘 **[Azure Collection Documentation](https://docs.ansible.com/ansible/latest/collections/azure/azcollection/)**
 
 
