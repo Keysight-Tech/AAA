@@ -1,3 +1,2 @@
-ansible_python_interpreter: /bin/sh
 podman_command: podman
 ca_cert_dir: "/etc/pki/ca-trust/source/anchors"

@@ -53,19 +53,101 @@ For large-scale infrastructure:
 ## 🔧 Prerequisites
 
 
-## Install Ansible on Your PC ( Control Node) ====> 📘 **[Install Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)**
+
+## 🧰 CLI Installation Links for Major Cloud Providers
+
+- **[Install Azure CLI (All Platforms)](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)**
+- **[Install AWS CLI (All Platforms)](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html)**
+- **[Install Google Cloud SDK (gcloud CLI)](https://cloud.google.com/sdk/docs/install)**
+- **[Install Oracle Cloud CLI (OCI CLI)](https://docs.oracle.com/en-us/iaas/Content/API/SDKDocs/cliinstall.htm)**
+- **[Install IBM Cloud CLI](https://cloud.ibm.com/docs/cli?topic=cli-install-ibmcloud-cli)**
+- **[Install Alibaba Cloud CLI](https://www.alibabacloud.com/help/en/developer-reference/install-the-alibaba-cloud-cli)**
+- **[Install OpenStack CLI (Python OpenStackClient)](https://docs.openstack.org/python-openstackclient/latest/install/index.html)**
+- **[Install VMware vSphere CLI](https://developer.vmware.com/docs/11758/vsphere-cli-7-0-u3c)**
+
+
+
+## ⚙️ Step 2: Install Ansible 2.16  ====> 📘 **[Install Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)**
 
 > **⚠️ Please Note:**  
-> If you have **SELinux** enabled on remote nodes, you will also want to install **`libselinux-python`** on them **before using any `copy`/`file`/`template`-related functions in Ansible**.  
-> 
-> You can use the `yum` or `dnf` module in Ansible to install this package on remote systems that do not have it.
+> If you have **SELinux** enabled on remote nodes, you will also want to install **`libselinux-python`** on them **before using any `copy`/`file`/`template`-related functions in Ansible**.
 
+### 2.1 Install Ansible Core and Collections
+
+```bash
+# Upgrade pip first
+pip3 install --upgrade pip
+``` 
+# Install Ansible 2.16 (latest stable)
+```
+pip3 install ansible-core==2.16.12
+pip3 install ansible==9.12.0
+```
+
+# Verify installation
+```
+ansible --version
+```
 ---
 
 📚 **Related References:**
 
 - [RHEL/CentOS libselinux-python Package Info](https://centos.pkgs.org/7/centos-x86_64/libselinux-python-2.5-15.el7.x86_64.rpm.html)  
 - [How to Manage SELinux in Ansible (Red Hat Guide)](https://access.redhat.com/solutions/2317631)
+
+
+### 2.2 Install Essential Python Dependencies
+
+```bash
+
+# Core dependencies
+pip3 install paramiko requests PyYAML jinja2 cryptography
+```
+
+# JSON/XML processing
+```
+pip3 install xmltodict pycparser
+```
+
+# Verify core installation
+```
+python3 -c "import ansible; print(f'Ansible version: {ansible.__version__}')"
+
+``` 
+
+## ☁️ Step 3: Azure Integration Setup
+
+### 3.1 Install Azure CLI for any mac/windows/ubuntu/redhat etc ====> 📘 **[Azure CLI Documentation](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)**
+
+### 3.2 Install Azure Python SDK (Compatible Versions) ====> 📘 **[Azure SDK for Python](https://docs.microsoft.com/en-us/azure/developer/python/)**
+
+```bash
+# Core Azure packages (Compatible versions for Ansible 2.16)
+pip3 install azure-identity==1.15.0
+pip3 install azure-mgmt-compute==30.4.0
+pip3 install azure-mgmt-network==25.2.0
+pip3 install azure-mgmt-resource==23.0.1
+pip3 install azure-mgmt-core==1.4.0
+pip3 install azure-common==1.1.28
+pip3 install azure-core==1.30.0
+pip3 install msrestazure==0.6.4
+```
+# Additional Azure services (optional)
+pip3 install azure-mgmt-storage==21.0.0
+pip3 install azure-mgmt-keyvault==10.2.3
+
+### 3.3 Install Azure Ansible Collection ====> 📘 **[Azure Collection Documentation](https://docs.ansible.com/ansible/latest/collections/azure/azcollection/)**
+
+
+# Install compatible Azure collection
+```
+ansible-galaxy collection install azure.azcollection:==2.3.0
+```
+
+# Verify installation
+```
+ansible-galaxy collection list | grep azure
+```
 
 ## Depending on your Target ENV (AWS, Azure, GCP, etc), install Ansible Galaxy collections for dynamic inventory and resource automation
 
@@ -102,7 +184,7 @@ For large-scale infrastructure:
 - **[Alibaba Cloud – alibaba.cloud](https://galaxy.ansible.com/ui/repo/published/alibaba/cloud/)**  
   Supports Alibaba Cloud automation and inventory.
 
-  
+  ```
 
 ### ✅ Install Azure Identity SDK
 
@@ -111,21 +193,9 @@ pip install azure-identity
 ```
 
 # confirm identity
-
+```
 python3 -c "from azure.identity import AzureCliCredential; print(AzureCliCredential().get_token('https://management.azure.com/.default'))"
-
-
-## 🧰 CLI Installation Links for Major Cloud Providers
-
-- **[Install Azure CLI (All Platforms)](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)**
-- **[Install AWS CLI (All Platforms)](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html)**
-- **[Install Google Cloud SDK (gcloud CLI)](https://cloud.google.com/sdk/docs/install)**
-- **[Install Oracle Cloud CLI (OCI CLI)](https://docs.oracle.com/en-us/iaas/Content/API/SDKDocs/cliinstall.htm)**
-- **[Install IBM Cloud CLI](https://cloud.ibm.com/docs/cli?topic=cli-install-ibmcloud-cli)**
-- **[Install Alibaba Cloud CLI](https://www.alibabacloud.com/help/en/developer-reference/install-the-alibaba-cloud-cli)**
-- **[Install OpenStack CLI (Python OpenStackClient)](https://docs.openstack.org/python-openstackclient/latest/install/index.html)**
-- **[Install VMware vSphere CLI](https://developer.vmware.com/docs/11758/vsphere-cli-7-0-u3c)**
-
+```
 
 ### Linux VMs
 
@@ -151,20 +221,24 @@ history
 
 ## Connectivity test and Deployment Commands
 
+# Run below to see host mapping
+
+### ansible-inventory -i inventory/azure_rm.yaml --list | jq  
+
 ### Ubuntu Linux Deployment
 ```bash
 
 ansible ubuntu_prod_vms -i inventory/ -m ping #test connections to ubuntu vms
 
-ansible-playbook -i inventory/ playbooks/ubuntu.yaml --limit ubuntu_prod_vms   #deploy
+ansible-playbook -i inventory/ playbooks/ubuntu.yaml   #deploy
 ```
 
 ### RHEL/CentOS Deployment
 ```bash
 
-ansible redhat_prod_vms -i inventory/ -m raw -a "echo OK"  #test connection
+ansible all -i inventory/azure_rm.yaml -m ping  #test connection
 
-ansible-playbook -i inventory/ playbooks/redhat.yaml --limit redhat_prod_vms  #deploy
+ansible-playbook -i inventory/ playbooks/redhat.yaml   #deploy
 ```
 
 ### Windows Deployment
@@ -172,22 +246,21 @@ ansible-playbook -i inventory/ playbooks/redhat.yaml --limit redhat_prod_vms  #d
 
 ansible windows_prod_vms -i inventory/ -m win_ping #test connection
 
-ansible-playbook -i inventory/ playbooks/windows.yaml --limit windows_prod_vms  #deploy
+ansible-playbook -i inventory/ playbooks/windows.yaml   #deploy
 ```
 
 ### Cleanup - Ubuntu
 ```bash
-ansible-playbook -i inventory/ playbooks/ubuntu_cleanup.yaml --limit ubuntu_prod_vms  
-```
+ansible-playbook -i inventory/ playbooks/ubuntu_cleanup.yaml 
 
 ### Cleanup - RHEL/CentOS
 ```bash
-ansible-playbook -i inventory/ playbooks/redhat_cleanup.yaml --limit redhat_prod_vms  
+ansible-playbook -i inventory/ playbooks/redhat_cleanup.yaml 
 ```
 
 ### Cleanup - Windows
 ```bash
-ansible-playbook -i inventory/ playbooks/windows_cleanup.yaml --limit windows_prod_vms  
+ansible-playbook -i inventory/ playbooks/windows_cleanup.yaml 
 ```
 
 ---

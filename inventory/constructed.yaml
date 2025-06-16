@@ -1,7 +1,5 @@
 plugin: constructed
 strict: false
-compose:
-  ansible_host: public_ipv4_addresses[0]
 
 groups:
   ubuntu_prod_vms: "'Ubuntu' in tags.OS and tags.Env == 'prod'"

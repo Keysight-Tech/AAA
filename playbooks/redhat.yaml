@@ -38,7 +38,7 @@
         - ansible_os_family == 'RedHat'
         - ansible_distribution_major_version | int >= 8
 
-    - name: Install Podman and container-tools on RHEL 7
+    - name: Install Podman and container-tools on RHEL 
       ansible.builtin.yum:
         name:
           - podman
@@ -99,8 +99,6 @@
         {{ podman_command }} pull
         {% if registry_type == 'insecure' %}--tls-verify=false{% endif %}
         {{ cloudlens_manager_ip_or_FQDN }}/sensor:latest
-      args:
-        warn: false
 
     - name: Run CloudLens Agent container with Podman
       ansible.builtin.shell: |
