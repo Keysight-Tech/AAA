@@ -2,7 +2,8 @@ plugin: azure.azcollection.azure_rm
 # auth_source: auto
 auth_source: cli
 include_vm_resource_groups:
-  - BrineK
+  - BrineK # replace with actual RG, Multiple RGs supported
+
 
 keyed_groups:
   - prefix: tag
@@ -10,3 +11,11 @@ keyed_groups:
     filter:
       - "OS"
       - "Env"
+
+# ✅ RECOMMENDATION TO TEAM:
+  # Ensure that all deployed VMs are tagged appropriately, especially with an 'Env' tag
+  # (e.g., Env=dev, Env=qa, Env=prod). This enables reliable grouping and targeting
+  # for configuration management and automation tasks in Ansible.
+  #
+  # Tagging based on environment helps separate dev/test/staging/prod resources, avoids accidental cross-env changes,
+  # and improves reporting, auditing, and governance across Azure resources.
