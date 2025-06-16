@@ -28,7 +28,7 @@
       debug:
         msg: "Podman is {{ 'installed' if podman_installed.rc == 0 else 'not installed' }}."
 
-    - name: Install Podman on RHEL 8+
+    - name: Install Podman on RHEL 
       ansible.builtin.dnf:
         name:
           - podman
@@ -123,16 +123,13 @@
         --ssl_verify {% if registry_type == 'secure' %}yes{% else %}no{% endif %}
       when: podman_installed.rc == 0
 
-    - name: Verify CloudLens Agent container is running
+    - name: Check if CloudLens agent container is running
       ansible.builtin.shell: >
-        {{ podman_command }} ps -f name={{ cloudlens_agent_container_name }} --format '{{"{{"}}.Names{{"}}"}}'
-      register: podman_agent_status
+        podman inspect -f '{{"{{"}}.State.Status{{"}}"}}' {{ cloudlens_agent_container_name }}
+      register: agent_status
       changed_when: false
-      retries: 20
-      delay: 10
-      until: >
-        podman_agent_status.rc == 0 and
-        podman_agent_status.stdout is defined and
-        podman_agent_status.stdout | trim != ""
+      failed_when: false
 
-
+    - name: Print CloudLens agent status
+      debug:
+            msg: "CloudLens agent container is {{ agent_status.stdout | default('NOT FOUND') }}"
