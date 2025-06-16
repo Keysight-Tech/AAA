@@ -221,10 +221,10 @@ history
 
 ## Connectivity test and Deployment Commands
 
-# Run below to see host mapping
-
-### ansible-inventory -i inventory/azure_rm.yaml --list | jq  
-
+## see host mapping
+```
+ansible-inventory -i inventory/azure_rm.yaml --list | jq  
+```
 ### Ubuntu Linux Deployment
 ```bash
 
@@ -252,12 +252,11 @@ ansible-playbook -i inventory/ playbooks/windows.yaml   #deploy
 ### Cleanup - Ubuntu
 ```bash
 ansible-playbook -i inventory/ playbooks/ubuntu_cleanup.yaml 
-
+```
 ### Cleanup - RHEL/CentOS
 ```bash
 ansible-playbook -i inventory/ playbooks/redhat_cleanup.yaml 
 ```
-
 ### Cleanup - Windows
 ```bash
 ansible-playbook -i inventory/ playbooks/windows_cleanup.yaml 
@@ -313,8 +312,23 @@ ansible_python_interpreter=/usr/bin/python3
 
 ## Known Issues and Fixes
 
-- **Python not found on remote host:**
-> Fix by installing Python or specifying `ansible_python_interpreter`
+### RHEL Compatibility Issues
+
+> **⚠️ RHEL Version Compatibility Warning:**  
+> **Ansible 2.18** has known compatibility issues with **RHEL 7/8** due to Python version requirements and dependency conflicts. **Ansible 2.16** is the recommended stable version for RHEL environments.
+
+[Ansible-core 2.16 Porting Guide — Ansible Community Documentation](https://docs.ansible.com/ansible/latest/porting_guides/porting_guide_core_2.16.html)
+
+#### RHEL 7 Issues with Ansible 2.18:
+- **Python 3.6 incompatibility** - Ansible 2.18 requires Python 3.8+
+- **Collection dependency conflicts** with older package versions
+- **SELinux policy issues** with newer Ansible modules
+
+#### RHEL 8/9 Recommended Approach:
+- Use **Ansible 2.16** for maximum compatibility
+- Install via **EPEL repositories** for tested packages
+- Use **Python 3.9+** when available
+
 
 - **Broken pipe / shared connection closed:**
 > Typically SSH or resource timeout. Retry or increase timeout in `ansible.cfg`

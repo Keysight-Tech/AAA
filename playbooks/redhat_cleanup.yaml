@@ -12,12 +12,12 @@
       failed_when: false
       changed_when: false
 
-    - name: Stop and remove CloudLens Agent container (Podman)
+    - name: Stop and remove CloudLens Agent container 
       ansible.builtin.shell: "{{ podman_command }} stop {{ cloudlens_agent_container_name }} && {{ podman_command }} rm -f {{ cloudlens_agent_container_name }}"
       when: podman_installed.rc == 0
       ignore_errors: yes
 
-    - name: Remove CloudLens sensor image (Podman)
+    - name: Remove CloudLens sensor image 
       ansible.builtin.shell: "{{ podman_command }} rmi {{ cloudlens_manager_ip_or_FQDN }}/sensor:latest"
       when: podman_installed.rc == 0
       ignore_errors: yes
