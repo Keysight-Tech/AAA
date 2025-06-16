@@ -17,7 +17,7 @@ The solution automates everything from installing dependencies to verifying agen
 
 ## ⚠️ Note
 
-This deployment framework supports scaling to thousands of servers across hybrid infrastructures using either static inventories or dynamic inventory plugins.
+This deployment framework supports scaling to thousands of servers across hybrid infrastructures using either static or dynamic inventory plugins.
 
 ---
 
@@ -46,6 +46,7 @@ For large-scale infrastructure:
 | `constructed.yaml`        | Build dynamic groups based on tags                                     |
 | `ansible.cfg`             | Ansible config including SSH key path, logging, etc.                  |
 | `deploy.yaml`             | Master deployment sequence across all environments                    |
+| `cleanup.yaml`             | Master cleanup sequence across all environments                    |
 | `ansible.log`             | Centralized execution log                                              |
 
 ---
@@ -234,6 +235,29 @@ history
 ```
 ansible-inventory -i inventory/azure_rm.yaml --list | jq  
 ```
+
+---
+
+## 📦 Unified Deployment & Cleanup Playbooks
+
+To simplify execution across all environments, two master playbooks are provided:
+
+---
+
+### ✅ `deploy.yaml` – Unified Deployment
+
+```
+ansible-playbook -i inventory/ deploy.yaml
+```
+
+### For unified cleanup:
+
+```
+ansible-playbook -i inventory/ cleanup.yaml
+```
+
+# For specifc playbooks use below: 
+
 ### Ubuntu Linux Deployment
 ```bash
 

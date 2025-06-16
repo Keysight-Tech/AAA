@@ -1,0 +1,4 @@
+# cleanup.yaml
+- import_playbook: playbooks/ubuntu_cleanup.yaml
+- import_playbook: playbooks/redhat_cleanup.yaml
+- import_playbook: playbooks/windows_cleanup.yaml

@@ -123,13 +123,16 @@
         --ssl_verify {% if registry_type == 'secure' %}yes{% else %}no{% endif %}
       when: podman_installed.rc == 0
 
-    - name: Verify if CloudLens Agent container is running
+    - name: Verify CloudLens Agent container is running
       ansible.builtin.shell: >
         {{ podman_command }} ps -f name={{ cloudlens_agent_container_name }} --format '{{"{{"}}.Names{{"}}"}}'
       register: podman_agent_status
       changed_when: false
-      failed_when: >
-        podman_agent_status.rc != 0 or
-        podman_agent_status.stdout is not defined or
-        podman_agent_status.stdout | trim == ""
+      retries: 20
+      delay: 10
+      until: >
+        podman_agent_status.rc == 0 and
+        podman_agent_status.stdout is defined and
+        podman_agent_status.stdout | trim != ""
+
 
