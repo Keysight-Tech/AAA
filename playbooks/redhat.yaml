@@ -90,11 +90,11 @@
       become: yes
       when: registry_type == "secure"
 
-    - name: Remove existing CloudLens agent container if exists (Podman)
+    - name: Remove existing CloudLens agent container if exists 
       ansible.builtin.shell: "{{ podman_command }} rm -f {{ cloudlens_agent_container_name }}"
       ignore_errors: yes
 
-    - name: Pull CloudLens sensor image from registry (Podman)
+    - name: Pull CloudLens sensor image from registry 
       ansible.builtin.shell: >
         {{ podman_command }} pull
         {% if registry_type == 'insecure' %}--tls-verify=false{% endif %}
