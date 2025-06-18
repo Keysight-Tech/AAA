@@ -1,0 +1,28 @@
+plugin: amazon.aws.aws_ec2
+
+profile: brine
+
+regions:
+  - us-west-2  # Replace with your AWS region (e.g., us-west-2, eu-central-1)
+
+hostnames:
+ - ip-address  # Use the instance's public IP address as the hostname
+
+# Only include running instances
+filters:
+  instance-state-name: running
+
+# # Group instances by tags (like Environment or OS)
+# keyed_groups:
+#   - prefix: az
+#     key: placement.availability_zone
+  
+keyed_groups:
+- prefix: tag
+  key: tags
+  filter:
+    - OS
+    - Env
+
+
+

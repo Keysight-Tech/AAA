@@ -1,8 +1,7 @@
 ---
 - name: Deploy CloudLens Agent to Windows VMs
-  hosts: windows
-  vars_files:
-    - variables.yaml
+  hosts: windows_vms
+
 
   tasks:
 

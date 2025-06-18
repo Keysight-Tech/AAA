@@ -1,0 +1,9 @@
+plugin: constructed
+strict: false
+compose:
+  ansible_host: public_ip_address
+
+groups:
+  ubuntu_vms: "'tag_OS_Ubuntu' in group_names"
+  redhat_vms: "'tag_OS_redhat' in group_names"
+  windows_vms: "'tag_OS_windows' in group_names"

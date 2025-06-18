@@ -1,0 +1,5 @@
+ansible_user: ec2-user
+ansible_ssh_private_key_file: /Users/brinketu/Downloads/eks-terraform-key.pem
+
+podman_command: podman
+ca_cert_dir: "/etc/pki/ca-trust/source/anchors"
