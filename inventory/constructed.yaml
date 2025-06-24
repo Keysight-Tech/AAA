@@ -1,8 +1,0 @@
-plugin: constructed
-strict: false
-
-groups:
-  ubuntu_prod_vms: "'Ubuntu' in tags.OS and tags.Env == 'prod'"
-  redhat_prod_vms: "'RHEL' in tags.OS and tags.Env == 'prod'"
-  windows_prod_vms: "'Windows' in tags.OS and tags.Env == 'prod'"
-  
