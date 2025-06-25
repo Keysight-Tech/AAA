@@ -8,7 +8,7 @@ cloudlens_agent_container_name: "cloudlens-agent"
 
 # Registry Configuration
 registry_type: "insecure"  # Set to "secure" if you're using a signed registry
-local_ca_path: "/Users/brinketu/NewCerts/cloudlenscerts.crt"  # Full cert chain (for secure registry)
+local_ca_path: "files/cloudlenscerts.crt"  # Full cert chain (for secure registry)
 ca_cert_dir: "/etc/ssl/certs"
 
 
