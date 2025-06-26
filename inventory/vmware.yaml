@@ -1,0 +1,41 @@
+plugin: community.vmware.vmware_vm_inventory
+strict: False
+hostname: "{{ vcenter_hostname }}"
+username: "{{ vcenter_username }}"
+password: "{{ vcenter_password }}"
+port: 443
+validate_certs: False
+
+# Properties to retrieve from vCenter
+properties:
+  - runtime.powerState
+  - guest.guestState
+  - guest.ipAddress
+  - config.guestFullName
+  - config.instanceUuid
+  - summary.config.numCpu
+  - summary.config.memorySizeMB
+  - config.annotation
+
+keyed_groups:
+  # Group by power state
+  - prefix: power
+    key: runtime.powerState
+  # Group by guest OS
+  - prefix: os
+    key: config.guestFullName | lower | regex_replace(' ', '_')
+  # Group by custom tags/annotations
+  - prefix: tag
+    key: config.annotation | default('') | regex_findall('(?i)(?:env|environment)[:=]\\s*(\\w+)') | first | default('untagged')
+
+groups:
+  # VMs that are powered on
+  powered_on: runtime.powerState == "poweredOn"
+  # VMs with IP addresses
+  has_ip: guest.ipAddress is defined and guest.ipAddress != ""
+
+compose:
+  # Use guest IP as ansible_host
+  ansible_host: guest.ipAddress | default(inventory_hostname)
+  # Set memory in GB for easier reading
+  memory_gb: (summary.config.memorySizeMB | int / 1024) | round(1)

@@ -1,0 +1,22 @@
+# Ubuntu connection settings
+ansible_user: brine
+ansible_connection: ssh
+ansible_become: yes
+ansible_become_method: sudo
+
+# Package management
+package_manager: apt
+python_interpreter: /usr/bin/python3
+
+# Ubuntu-specific packages
+common_packages:
+  - curl
+  - wget
+  - vim
+  - htop
+  - net-tools
+  - open-vm-tools
+
+# Repository updates
+update_cache: yes
+upgrade_packages: safe

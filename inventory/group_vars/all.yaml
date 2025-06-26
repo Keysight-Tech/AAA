@@ -1,29 +1,46 @@
+# ========================================
+# VMware vCenter Configuration
+# ========================================
+vcenter_hostname: "{{ lookup('env', 'VCENTER_HOSTNAME') }}"
+vcenter_username: "{{ lookup('env', 'VCENTER_USERNAME') }}"
+vcenter_password: "{{ lookup('env', 'VCENTER_PASSWORD') }}"
+
+# Optional VMware settings
+vcenter_datacenter: "{{ lookup('env', 'VCENTER_DATACENTER') | default('') }}"
+vcenter_cluster: "{{ lookup('env', 'VCENTER_CLUSTER') | default('') }}"
+
+# ========================================
 # General CloudLens Configuration
+# ========================================
 cloudlens_manager_ip_or_FQDN: "52.232.181.182"
 project_key: "4d20025297414f7ab840a6e9086de116"
-custom_tags: "Env=Azure Region=US-East2"
+custom_tags: "Env=VMware Region=OnPrem"  # Updated for VMware
 cloudlens_agent_container_name: "cloudlens-agent"
 
-
-
+# ========================================
 # Registry Configuration
+# ========================================
 registry_type: "insecure"  # Set to "secure" if you're using a signed registry
 local_ca_path: "/Users/brinketu/NewCerts/cloudlenscerts.crt"  # Full cert chain (for secure registry)
 ca_cert_dir: "/etc/ssl/certs"
 
-
+# ========================================
 # Log Rotation Settings
-log_max_size: "50m"                            
+# ========================================
+log_max_size: "50m"
 log_max_file: "5"
 
+# ========================================
+# Common System Settings
+# ========================================
+timezone: "America/New_York"
+ntp_servers:
+  - 0.pool.ntp.org
+  - 1.pool.ntp.org
 
+# Security settings
+disable_root_login: true
+password_authentication: false
 
-
-
-# Python interpreter for RHEL/CentOS/ubuntu (important for Ansible to work correctly)
-# ansible_python_interpreter: /usr/bin/python3 
-# ansible_python_interpreter: /usr/libexec/platform-python
-# Replace if dir or custom python interpreter is used. Refer to 
-# Ansible interpreter discovery reference:( ignore warning)
-# https://docs.ansible.com/ansible-core/2.18/reference_appendices/interpreter_discovery.html
-
+# VMware Tools settings
+vmware_tools_install: true

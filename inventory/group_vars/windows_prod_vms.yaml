@@ -17,3 +17,7 @@ local_installer_path: "/Users/brinketu/Downloads/cloudlens-win-sensor-6.11.1.302
 cloudlens_installer_filename: "cloudlens-win-sensor-6.11.1.302.exe"
 ssl_verify: "no"
 auto_update: "yes"
+
+# Windows service management
+windows_features_install: []
+windows_services_config: []

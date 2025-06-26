@@ -7,24 +7,26 @@ This repository provides fully automated Ansible playbooks for deploying the Clo
 - **Linux (Ubuntu, RHEL/CentOS)** – Docker or Podman-based container deployment.
 - **Windows** – `.exe` silent installation over WinRM.
 
-The solution automates everything from installing dependencies to verifying agent health, including:
-- Container engine setup (Docker or Podman).
-- Registry trust and authentication.
-- Agent container or installer deployment.
-- Structured logging and clean-up.
+The automation covers every step from initial setup to agent health validation:
+
+- ✅ Container engine installation (Docker or Podman)  
+- ✅ Registry trust configuration and authentication  
+- ✅ Deployment of the agent (container or executable)  
+- ✅ Structured logging, health checks, and clean-up routines
+
 
 ---
 
 ## ⚠️ Note
 
-This deployment framework supports scaling to thousands of servers across hybrid infrastructures using either static or dynamic inventory plugins.
+This deployment framework supports scaling to thousands of servers across hybrid infrastructures using either static , dynamic inventory plugins AWX and Ansible Towers.
 
 ---
 
 ## 📈 Scaling Deployments
 
 For large-scale infrastructure:
-- Use dynamic inventories like `azure_rm`, `ec2`, or `gcp_compute`.
+- Use dynamic inventories like `azure_rm`, `ec2`, `gcp_compute`, `oci`, or `vmware_vm_inventory`.
 - Use `constructed.yaml` to group VMs dynamically based on tags.
 
 📘 **[Explore Ansible dynamic inventory plugins](https://docs.ansible.com/ansible/latest/plugins/inventory.html)**
@@ -41,8 +43,7 @@ For large-scale infrastructure:
 | `ubuntu_cleanup.yaml`     | Remove Docker and agent from Ubuntu                                    |
 | `redhat_cleanup.yaml`     | Remove Podman, agent, and config from RHEL                             |
 | `windows_cleanup.yaml`    | Uninstall agent from Windows and remove installer                      |
-| `inventory/group_vars/`   | Group-specific variables per OS/environment                            |
-| `inventory/azure_rm.yaml` | Azure dynamic inventory configuration                                  |
+| `inventory/group_vars/`   | Group-specific variables per OS/environment                            |                              
 | `constructed.yaml`        | Build dynamic groups based on tags                                     |
 | `ansible.cfg`             | Ansible config including SSH key path, logging, etc.                  |
 | `deploy.yaml`             | Master deployment sequence across all environments                    |
@@ -51,8 +52,36 @@ For large-scale infrastructure:
 
 ---
 
-## 🔧 Prerequisites
+## 📁 VMware-Specific Repository Structure
 
+| File/Folder                      | Description                                         |
+|----------------------------------|-----------------------------------------------------|
+| `inventory/vmware.yaml`          | VMware dynamic inventory configuration              |
+| `inventory/constructed.yaml`     | Build dynamic groups based on VM properties         |
+| `group_vars/ubuntu_vms.yaml`     | Ubuntu VM-specific variables                        |
+| `group_vars/windows_vms.yaml`    | Windows VM-specific variables                       |
+| `group_vars/linux_prod_vms.yaml` | Production Linux VM variables                       |
+| `.env`                           | VMware vCenter credentials and settings             |
+| `requirements.yml`               | Required Ansible collections for VMware  
+
+
+## ⚙️ Step 3: Configure VMware Environment
+
+```bash
+# VMware vCenter connection details
+export VCENTER_HOSTNAME=vcenter.company.com
+export VCENTER_USERNAME=administrator@vsphere.local
+export VCENTER_PASSWORD=your-secure-password
+
+# Optional: Datacenter and cluster filtering
+export VCENTER_DATACENTER=Production-DC
+export VCENTER_CLUSTER=Production-Cluster
+
+# SSH key path for Linux VMs
+export ANSIBLE_PRIVATE_KEY_FILE=/path/to/your/ssh-key.pem
+```
+
+## 🔧 Prerequisites
 
 
 ## 🧰 CLI Installation Links for Major Cloud Providers
@@ -68,7 +97,7 @@ For large-scale infrastructure:
 
 
 
-## ⚙️ Step 2: Install Ansible 2.16  ====> 📘 **[Install Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)**
+## ⚙️ Step 2: Install Ansible >= 2.16  ====> 📘 **[Install Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)**
 
 > **⚠️ Please Note:**  
 > If you have **SELinux** enabled on remote nodes, you will also want to install **`libselinux-python`** on them **before using any `copy`/`file`/`template`-related functions in Ansible**.
@@ -79,7 +108,7 @@ For large-scale infrastructure:
 # Upgrade pip first
 pip3 install --upgrade pip
 ``` 
-# Install Ansible 2.16 (latest stable)
+# Install Ansible >= 2.16 (latest stable)
 ```
 pip3 install ansible-core==2.16.12
 pip3 install ansible==9.12.0
@@ -113,45 +142,16 @@ pip3 install xmltodict pycparser
 # Verify core installation
 ```
 python3 -c "import ansible; print(f'Ansible version: {ansible.__version__}')"
-
 ``` 
-
-## ☁️ Step 3: Azure Integration Setup
-
-### 3.1 Install Azure CLI for any mac/windows/ubuntu/redhat etc ====> 📘 **[Azure CLI Documentation](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)**
-
-### 3.2 Install Azure Python SDK (Compatible Versions) ====> 📘 **[Azure SDK for Python](https://docs.microsoft.com/en-us/azure/developer/python/)**
-
-```bash
-# Core Azure packages (Compatible versions for Ansible 2.16)
-pip3 install azure-identity==1.15.0
-pip3 install azure-mgmt-compute==30.4.0
-pip3 install azure-mgmt-network==25.2.0
-pip3 install azure-mgmt-resource==23.0.1
-pip3 install azure-mgmt-core==1.4.0
-pip3 install azure-common==1.1.28
-pip3 install azure-core==1.30.0
-pip3 install msrestazure==0.6.4
-```
-# Additional Azure services (optional)
-pip3 install azure-mgmt-storage==21.0.0
-pip3 install azure-mgmt-keyvault==10.2.3
 
 ### 3.3 Install WinRM Dependencies for Windows VM Management ====> 📘 **[Ansible Windows Guide](https://docs.ansible.com/ansible/latest/os_guide/windows_winrm.html#windows-winrm)**
 
 ```bash
+
 # Core WinRM libraries (Required for Windows VM management)
 pip3 install pywinrm==0.4.3
 pip3 install requests-ntlm==1.2.0
 pip3 install xmltodict==0.13.0
-```
-
-### 3.3 Install Azure Ansible Collection ====> 📘 **[Azure Collection Documentation](https://docs.ansible.com/ansible/latest/collections/azure/azcollection/)**
-
-
-# Install compatible Azure collection
-```
-ansible-galaxy collection install azure.azcollection:==2.3.0
 ```
 
 # Verify installation
@@ -195,17 +195,6 @@ ansible-galaxy collection list | grep azure
   Supports Alibaba Cloud automation and inventory.
 
   ```
-
-### ✅ Install Azure Identity SDK
-
-```
-pip install azure-identity
-```
-
-# confirm identity
-```
-python3 -c "from azure.identity import AzureCliCredential; print(AzureCliCredential().get_token('https://management.azure.com/.default'))"
-```
 
 ### Linux VMs
 

@@ -2,24 +2,29 @@ plugin: constructed
 strict: false
 
 groups:
-  # Group by OS type from tags
-  ubuntu_prod_vms: "'Ubuntu' in freeform_tags.OS and freeform_tags.Env == 'prod'"
-  oracle_linux_prod_vms: "'OracleLinux' in freeform_tags.OS and freeform_tags.Env == 'prod'"
-  windows_prod_vms: "'Windows' in freeform_tags.OS and freeform_tags.Env == 'prod'"
+  # Group by OS type based on guest OS name
+  ubuntu_vms: "'ubuntu' in (config.guestFullName | lower)"
+  centos_vms: "'centos' in (config.guestFullName | lower)"
+  rhel_vms: "'red hat' in (config.guestFullName | lower)"
+  windows_vms: "'windows' in (config.guestFullName | lower)"
   
-  # Group by environment
-  prod_vms: "freeform_tags.Env == 'prod'"
+  # Group by environment from VM annotations
+  prod_vms: "'prod' in (config.annotation | default('') | lower)"
+  dev_vms: "'dev' in (config.annotation | default('') | lower)"
+  test_vms: "'test' in (config.annotation | default('') | lower)"
   
-  # Group by instance state
-  active_vms: "instance_lifecycle_state == 'RUNNING'"
+  # Combined groups for production VMs by OS
+  ubuntu_prod_vms: "'ubuntu' in (config.guestFullName | lower) and 'prod' in (config.annotation | default('') | lower)"
+  linux_prod_vms: "('ubuntu' in (config.guestFullName | lower) or 'centos' in (config.guestFullName | lower) or 'red hat' in (config.guestFullName | lower)) and 'prod' in (config.annotation | default('') | lower)"
+  windows_prod_vms: "'windows' in (config.guestFullName | lower) and 'prod' in (config.annotation | default('') | lower)"
+  
+  # Active VMs (powered on with IP)
+  active_vms: "runtime.powerState == 'poweredOn' and guest.ipAddress is defined"
 
 compose:
-  # Set ansible_host to public IP if available, otherwise private IP
-  ansible_host: public_ip | default(private_ip)
-  
-  # Set OS-specific connection details
+  # Set connection details based on OS
   ansible_user: >-
-    'Administrator' if 'Windows' in freeform_tags.OS else 'brine'
+    'Administrator' if 'windows' in (config.guestFullName | lower) else 'brine'
   
   ansible_connection: >-
-    'winrm' if 'Windows' in freeform_tags.OS else 'ssh'
+    'winrm' if 'windows' in (config.guestFullName | lower) else 'ssh'
