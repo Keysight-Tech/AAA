@@ -9,12 +9,10 @@ This repository provides fully automated Ansible playbooks for deploying the Clo
 
 The automation covers every step from initial setup to agent health validation:
 
-  ✅ Container engine installation (Docker or Podman)
-  ✅ Registry trust configuration and authentication
-  ✅ Deployment of the agent (container or executable)
-  ✅ Structured logging, health checks, and clean-up routines
-
----
+- ✅ Container engine installation (Docker or Podman)  
+- ✅ Registry trust configuration and authentication  
+- ✅ Deployment of the agent (container or executable)  
+- ✅ Structured logging, health checks, and clean-up routines  
 
 ## ⚠️ Note
 
