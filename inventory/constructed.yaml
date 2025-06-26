@@ -2,7 +2,24 @@ plugin: constructed
 strict: false
 
 groups:
-  ubuntu_prod_vms: "'Ubuntu' in tags.OS and tags.Env == 'prod'"
-  redhat_prod_vms: "'RHEL' in tags.OS and tags.Env == 'prod'"
-  windows_prod_vms: "'Windows' in tags.OS and tags.Env == 'prod'"
+  # Group by OS type from tags
+  ubuntu_prod_vms: "'Ubuntu' in freeform_tags.OS and freeform_tags.Env == 'prod'"
+  oracle_linux_prod_vms: "'OracleLinux' in freeform_tags.OS and freeform_tags.Env == 'prod'"
+  windows_prod_vms: "'Windows' in freeform_tags.OS and freeform_tags.Env == 'prod'"
   
+  # Group by environment
+  prod_vms: "freeform_tags.Env == 'prod'"
+  
+  # Group by instance state
+  active_vms: "instance_lifecycle_state == 'RUNNING'"
+
+compose:
+  # Set ansible_host to public IP if available, otherwise private IP
+  ansible_host: public_ip | default(private_ip)
+  
+  # Set OS-specific connection details
+  ansible_user: >-
+    'Administrator' if 'Windows' in freeform_tags.OS else 'brine'
+  
+  ansible_connection: >-
+    'winrm' if 'Windows' in freeform_tags.OS else 'ssh'

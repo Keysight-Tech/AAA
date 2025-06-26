@@ -1,11 +1,19 @@
+# Windows connection settings
 ansible_user: brine
 ansible_password: Bravedemo123.
 ansible_connection: winrm
 ansible_winrm_transport: ntlm
 ansible_winrm_server_cert_validation: ignore
+ansible_winrm_port: 5985
+ansible_winrm_scheme: http
 
-# Windows Deployment
+# Windows-specific settings
+ansible_shell_type: powershell
+ansible_become_method: runas
+ansible_become_user: Administrator
+
+# Application deployment settings
 local_installer_path: "/Users/brinketu/Downloads/cloudlens-win-sensor-6.11.1.302.exe"
 cloudlens_installer_filename: "cloudlens-win-sensor-6.11.1.302.exe"
-ssl_verify: "no"      # Set to "yes" if using secure SSL cert
+ssl_verify: "no"
 auto_update: "yes"
