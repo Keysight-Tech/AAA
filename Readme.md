@@ -7,24 +7,25 @@ This repository provides fully automated Ansible playbooks for deploying the Clo
 - **Linux (Ubuntu, RHEL/CentOS)** – Docker or Podman-based container deployment.
 - **Windows** – `.exe` silent installation over WinRM.
 
-The solution automates everything from installing dependencies to verifying agent health, including:
-- Container engine setup (Docker or Podman).
-- Registry trust and authentication.
-- Agent container or installer deployment.
-- Structured logging and clean-up.
+The automation covers every step from initial setup to agent health validation:
+
+  ✅ Container engine installation (Docker or Podman)
+  ✅ Registry trust configuration and authentication
+  ✅ Deployment of the agent (container or executable)
+  ✅ Structured logging, health checks, and clean-up routines
 
 ---
 
 ## ⚠️ Note
 
-This deployment framework supports scaling to thousands of servers across hybrid infrastructures using either static or dynamic inventory plugins.
+This deployment framework supports scaling to thousands of servers across hybrid infrastructures using either static , dynamic inventory plugins AWX and Ansible Towers.
 
 ---
 
 ## 📈 Scaling Deployments
 
 For large-scale infrastructure:
-- Use dynamic inventories like `azure_rm`, `ec2`, or `gcp_compute`.
+- Use dynamic inventories like `azure_rm`, `ec2`, `gcp_compute` `oci`, or `vmware_vm_inventory`.
 - Use `constructed.yaml` to group VMs dynamically based on tags.
 
 📘 **[Explore Ansible dynamic inventory plugins](https://docs.ansible.com/ansible/latest/plugins/inventory.html)**
