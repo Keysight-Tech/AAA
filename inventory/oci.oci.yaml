@@ -1,0 +1,29 @@
+plugin: oracle.oci.oci
+name: oci_inventory
+
+config_file: ~/.oci/config
+profile: DEFAULT
+
+regions:
+  - us-ashburn-1
+
+compartments:
+  - compartment_ocid: ocid1.tenancy.oc1..aaaaaaaabze3etlk44jfmsnmrtdp3rulfvicqpm6dvwofbowkpk57xrfzewq
+
+instance_principal_authentication: false
+
+keyed_groups:
+  - key: freeform_tags
+    separator: "_"
+    prefix: "tag"
+
+groups:
+  ubuntu_prod_vms: freeform_tags.OS == "Ubuntu" and freeform_tags.Env == "prod"
+  oracle_linux_prod_vms: freeform_tags.OS == "OracleLinux" and freeform_tags.Env == "prod"
+  windows_prod_vms: freeform_tags.OS == "Windows" and freeform_tags.Env == "prod"
+  clms_prod_vms: freeform_tags.Role == "CloudLens-Manager" and freeform_tags.Env == "prod"
+
+compose:
+  ansible_host: public_ip | default(private_ip)
+  ansible_user: "'brine'"
+  ansible_connection: "'winrm' if freeform_tags.OS == 'Windows' else 'ssh'"

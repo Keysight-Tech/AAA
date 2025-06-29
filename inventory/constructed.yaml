@@ -3,23 +3,35 @@ strict: false
 
 groups:
   # Group by OS type from tags
-  ubuntu_prod_vms: "'Ubuntu' in freeform_tags.OS and freeform_tags.Env == 'prod'"
-  oracle_linux_prod_vms: "'OracleLinux' in freeform_tags.OS and freeform_tags.Env == 'prod'"
-  windows_prod_vms: "'Windows' in freeform_tags.OS and freeform_tags.Env == 'prod'"
+  ubuntu_prod_vms: "'Ubuntu' in (freeform_tags.OS | default('')) and (freeform_tags.Env | default('')) == 'prod'"
+  oracle_linux_prod_vms: "'OracleLinux' in (freeform_tags.OS | default('')) and (freeform_tags.Env | default('')) == 'prod'"
+  windows_prod_vms: "'Windows' in (freeform_tags.OS | default('')) and (freeform_tags.Env | default('')) == 'prod'"
   
   # Group by environment
-  prod_vms: "freeform_tags.Env == 'prod'"
+  prod_vms: "(freeform_tags.Env | default('')) == 'prod'"
   
   # Group by instance state
   active_vms: "instance_lifecycle_state == 'RUNNING'"
+  
+  # Combine Ubuntu and CLMS as they're both Ubuntu-based
+  ubuntu_all: "'Ubuntu' in (freeform_tags.OS | default(''))"
+  
+  # All Linux systems
+  linux_vms: "'Ubuntu' in (freeform_tags.OS | default('')) or 'OracleLinux' in (freeform_tags.OS | default(''))"
 
 compose:
   # Set ansible_host to public IP if available, otherwise private IP
   ansible_host: public_ip | default(private_ip)
   
   # Set OS-specific connection details
-  ansible_user: >-
-    'Administrator' if 'Windows' in freeform_tags.OS else 'brine'
+  ansible_user: "'brine'"
   
-  ansible_connection: >-
-    'winrm' if 'Windows' in freeform_tags.OS else 'ssh'
+  ansible_connection: "'winrm' if 'Windows' in (freeform_tags.OS | default('')) else 'ssh'"
+  
+  # Windows-specific variables
+  ansible_password: "'Bravedemo123.' if 'Windows' in (freeform_tags.OS | default('')) else omit"
+  ansible_winrm_transport: "'ntlm' if 'Windows' in (freeform_tags.OS | default('')) else omit"
+  ansible_winrm_server_cert_validation: "'ignore' if 'Windows' in (freeform_tags.OS | default('')) else omit"
+  
+  # SSH key for Linux systems
+  ansible_ssh_private_key_file: "'/Users/brinketu/Downloads/brinendamketum@gmail.com-2025-06-29T13_25_39.809Z.pem' if 'Windows' not in (freeform_tags.OS | default('')) else omit"

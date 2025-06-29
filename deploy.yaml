@@ -1,4 +1,4 @@
 ---
 - import_playbook: playbooks/ubuntu.yaml
-- import_playbook: playbooks/redhat.yaml
+- import_playbook: playbooks/oracle_linux.yaml  # Changed from redhat.yaml
 - import_playbook: playbooks/windows.yaml

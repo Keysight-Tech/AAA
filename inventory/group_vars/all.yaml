@@ -1,21 +1,32 @@
-# General CloudLens Configuration
-cloudlens_manager_ip_or_FQDN: "52.232.181.182"
+# General CloudLens Configuration - Updated for OCI
+cloudlens_manager_ip_or_FQDN: "150.136.14.201"  # Updated to your CLMS VM IP
 project_key: "4d20025297414f7ab840a6e9086de116"
-custom_tags: "Env=Azure Region=US-East2"
+custom_tags: "Env=OCI Region=us-ashburn-1"  # Updated for OCI
 cloudlens_agent_container_name: "cloudlens-agent"
-
-
 
 # Registry Configuration
 registry_type: "insecure"  # Set to "secure" if you're using a signed registry
 local_ca_path: "/Users/brinketu/NewCerts/cloudlenscerts.crt"  # Full cert chain (for secure registry)
 ca_cert_dir: "/etc/ssl/certs"
 
-
 # Log Rotation Settings
 log_max_size: "50m"                            
 log_max_file: "5"
 
+# Python interpreter for different OS types
+# Ubuntu/Debian systems
+ansible_python_interpreter: /usr/bin/python3
+
+# OCI-specific configuration
+oci_region: "us-ashburn-1"
+oci_compartment_id: "ocid1.tenancy.oc1..aaaaaaaabze3etlk44jfmsnmrtdp3rulfvicqpm6dvwofbowkpk57xrfzewq"
+
+# SSH configuration for OCI instances
+ssh_private_key_file: "/Users/brinketu/Downloads/brinendamketum@gmail.com-2025-06-29T13_25_39.809Z.pem"
+ssh_user: "brine"
+
+# Windows configuration
+windows_admin_password: "Bravedemo123."
 
 
 

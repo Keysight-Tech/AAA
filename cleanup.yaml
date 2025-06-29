@@ -1,4 +1,4 @@
 # cleanup.yaml
 - import_playbook: playbooks/ubuntu_cleanup.yaml
-- import_playbook: playbooks/redhat_cleanup.yaml
+- import_playbook: playbooks/oracle_linux_cleanup.yaml  # Changed from redhat_cleanup.yaml
 - import_playbook: playbooks/windows_cleanup.yaml
