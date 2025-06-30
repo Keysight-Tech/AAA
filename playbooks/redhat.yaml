@@ -1,5 +1,5 @@
 - name: Deploy CloudLens Agent to Red Hat VMs with Podman
-  hosts: redhat_prod_vms
+  hosts:  oracle_linux_prod_vms
   become: yes
 
   tasks:

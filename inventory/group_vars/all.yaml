@@ -1,5 +1,5 @@
 # General CloudLens Configuration - Updated for OCI
-cloudlens_manager_ip_or_FQDN: "150.136.14.201"  # Updated to your CLMS VM IP
+cloudlens_manager_ip_or_FQDN: "52.232.181.182"  # Updated to your CLMS VM IP
 project_key: "4d20025297414f7ab840a6e9086de116"
 custom_tags: "Env=OCI Region=us-ashburn-1"  # Updated for OCI
 cloudlens_agent_container_name: "cloudlens-agent"
