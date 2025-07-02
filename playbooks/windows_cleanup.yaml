@@ -3,34 +3,221 @@
   hosts: windows_prod_vms
   
   tasks:
-
     - name: Check if CloudLens Agent is installed via registry
+      win_reg_stat:
+        path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall
+      register: uninstall_reg
+
+    - name: Find CloudLens Agent in registry
       win_shell: |
-        $found = Get-ChildItem -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall" |
-          Where-Object {
-            ($_ | Get-ItemProperty).DisplayName -like "*CloudLens Agent*"
+        $apps = @()
+        $paths = @(
+          "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*",
+          "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*"
+        )
+        
+        foreach ($path in $paths) {
+          $found = Get-ItemProperty $path -ErrorAction SilentlyContinue | 
+            Where-Object { $_.DisplayName -like "*CloudLens*" }
+          if ($found) {
+            $apps += $found
           }
-        if ($found) {
-          $found | Select-Object -ExpandProperty PSChildName
         }
-      register: cloudlens_installed
+        
+        if ($apps.Count -gt 0) {
+          @{
+            Found = $true
+            Count = $apps.Count
+            Details = $apps | Select-Object DisplayName, DisplayVersion, UninstallString, InstallLocation
+          } | ConvertTo-Json -Depth 3
+        } else {
+          @{ Found = $false; Count = 0 } | ConvertTo-Json
+        }
+      register: cloudlens_search
       changed_when: false
-      ignore_errors: true
 
-    - name: Uninstall CloudLens Agent if found
+    - name: Parse search results
+      set_fact:
+        cloudlens_found: "{{ (cloudlens_search.stdout | from_json).Found }}"
+        cloudlens_details: "{{ (cloudlens_search.stdout | from_json).Details | default([]) }}"
+
+    - name: Display CloudLens installation status
+      debug:
+        msg: 
+          - "CloudLens Agent found: {{ cloudlens_found }}"
+          - "Installation details: {{ cloudlens_details }}"
+
+    - name: Stop CloudLens Agent service if running
+      win_service:
+        name: CloudLensAgent
+        state: stopped
+      failed_when: false
+      register: service_stop
+
+    - name: Stop CloudLens Agent process if running
       win_shell: |
-        $app = Get-WmiObject -Class Win32_Product | Where-Object { $_.Name -like "*CloudLens Agent*" }
-        if ($app) {
-          $app.Uninstall() | Out-Null
+        $processes = Get-Process -Name "CloudLensAgent*" -ErrorAction SilentlyContinue
+        if ($processes) {
+          $processes | Stop-Process -Force
+          "Stopped {{ $processes.Count }} CloudLens processes"
+        } else {
+          "No CloudLens processes found"
         }
-      when: cloudlens_installed.stdout != ""
+      register: process_stop
+      changed_when: "'Stopped' in process_stop.stdout"
 
-    - name: Delete CloudLens installer from C:\temp
-      win_file:
-        path: "C:\\temp\\{{ cloudlens_installer_filename }}"
-        state: absent
+    - name: Uninstall CloudLens Agent using multiple methods
+      when: cloudlens_found
+      block:
+        - name: Try uninstall using UninstallString from registry
+          win_shell: |
+            $apps = Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" | 
+              Where-Object { $_.DisplayName -like "*CloudLens*" }
+            
+            foreach ($app in $apps) {
+              if ($app.UninstallString) {
+                $uninstallCmd = $app.UninstallString
+                if ($uninstallCmd -like "msiexec*") {
+                  # MSI package - add quiet flags
+                  $uninstallCmd = $uninstallCmd -replace '/I', '/X'
+                  $uninstallCmd += " /quiet /norestart"
+                }
+                
+                Write-Host "Executing: $uninstallCmd"
+                $proc = Start-Process -FilePath "cmd.exe" -ArgumentList "/c $uninstallCmd" -Wait -PassThru -NoNewWindow
+                
+                @{
+                  AppName = $app.DisplayName
+                  ExitCode = $proc.ExitCode
+                  Success = ($proc.ExitCode -eq 0)
+                } | ConvertTo-Json
+              }
+            }
+          register: uninstall_registry
+          failed_when: false
 
-    - name: Delete CA cert from temp if present
+        - name: Fallback - Uninstall using WMI
+          win_shell: |
+            $app = Get-WmiObject -Class Win32_Product | Where-Object { $_.Name -like "*CloudLens*" }
+            if ($app) {
+              $result = $app.Uninstall()
+              @{
+                Method = "WMI"
+                ReturnValue = $result.ReturnValue
+                Success = ($result.ReturnValue -eq 0)
+              } | ConvertTo-Json
+            } else {
+              @{ Method = "WMI"; Success = $false; Message = "Not found via WMI" } | ConvertTo-Json
+            }
+          register: uninstall_wmi
+          when: uninstall_registry.rc != 0 or (uninstall_registry.stdout | from_json).Success == false
+          failed_when: false
+
+        - name: Fallback - Use win_package module
+          win_package:
+            product_id: CloudLens Agent
+            state: absent
+          register: uninstall_win_package
+          when: 
+            - uninstall_wmi is skipped or (uninstall_wmi.stdout | from_json).Success == false
+          failed_when: false
+
+    - name: Wait for uninstallation to complete
+      win_shell: Start-Sleep -Seconds 5
+      when: cloudlens_found
+
+    - name: Verify CloudLens Agent is uninstalled
+      win_shell: |
+        $stillInstalled = Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*" | 
+          Where-Object { $_.DisplayName -like "*CloudLens*" }
+        
+        if ($stillInstalled) {
+          "WARNING: CloudLens still appears in registry"
+        } else {
+          "CloudLens successfully removed from registry"
+        }
+      register: verify_uninstall
+      changed_when: false
+
+    - name: Remove CloudLens certificates from certificate store
+      win_shell: |
+        $certs = Get-ChildItem -Path Cert:\LocalMachine\Root | 
+          Where-Object { $_.Subject -like "*CloudLens*" -or $_.Issuer -like "*CloudLens*" }
+        
+        if ($certs) {
+          foreach ($cert in $certs) {
+            Remove-Item -Path $cert.PSPath -Force
+          }
+          "Removed {{ $certs.Count }} CloudLens certificates"
+        } else {
+          "No CloudLens certificates found in store"
+        }
+      register: cert_removal
+      changed_when: "'Removed' in cert_removal.stdout"
+
+    - name: Clean up CloudLens files and directories
       win_file:
-        path: C:\temp\cloudlens_ca.crt
+        path: "{{ item }}"
         state: absent
+      loop:
+        - "C:\\temp\\{{ cloudlens_installer_filename | default('cloudlens_installer.exe') }}"
+        - C:\temp\cloudlens_ca.crt
+        - C:\ProgramData\CloudLens
+        - C:\Program Files\CloudLens
+        - C:\Program Files (x86)\CloudLens
+      ignore_errors: yes
+
+    - name: Clean up CloudLens registry keys
+      win_regedit:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - HKLM:\SOFTWARE\CloudLens
+        - HKLM:\SOFTWARE\WOW6432Node\CloudLens
+        - HKCU:\SOFTWARE\CloudLens
+      ignore_errors: yes
+
+    - name: Remove CloudLens service registration if exists
+      win_shell: |
+        $service = Get-Service -Name "CloudLensAgent" -ErrorAction SilentlyContinue
+        if ($service) {
+          sc.exe delete CloudLensAgent
+          "CloudLens service deleted"
+        } else {
+          "CloudLens service not found"
+        }
+      register: service_removal
+      changed_when: "'deleted' in service_removal.stdout"
+
+    - name: Clean up any remaining CloudLens scheduled tasks
+      win_shell: |
+        $tasks = Get-ScheduledTask | Where-Object { $_.TaskName -like "*CloudLens*" }
+        if ($tasks) {
+          foreach ($task in $tasks) {
+            Unregister-ScheduledTask -TaskName $task.TaskName -Confirm:$false
+          }
+          "Removed {{ $tasks.Count }} CloudLens scheduled tasks"
+        } else {
+          "No CloudLens scheduled tasks found"
+        }
+      register: task_removal
+      changed_when: "'Removed' in task_removal.stdout"
+
+    - name: Clean up temp directory if empty
+      win_shell: |
+        if ((Get-ChildItem -Path C:\temp -ErrorAction SilentlyContinue | Measure-Object).Count -eq 0) {
+          Remove-Item -Path C:\temp -Force
+          "Removed empty temp directory"
+        } else {
+          "Temp directory not empty, keeping it"
+        }
+      register: temp_cleanup
+      changed_when: "'Removed empty' in temp_cleanup.stdout"
+
+    - name: Display cleanup summary
+      debug:
+        msg:
+          - "CloudLens uninstall status: {{ verify_uninstall.stdout }}"
+          - "Certificates removed: {{ cert_removal.stdout }}"
+          - "Service removed: {{ service_removal.stdout }}"
+          - "Scheduled tasks removed: {{ task_removal.stdout }}"

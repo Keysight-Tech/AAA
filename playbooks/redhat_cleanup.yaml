@@ -1,10 +1,15 @@
+---
 - name: Undo CloudLens Agent Deployment from Red Hat VMs with Podman
   hosts: redhat_prod_vms
   become: yes
 
+  vars:
+    podman_command: "{{ 'sudo podman' if ansible_user != 'root' else 'podman' }}"
+    remove_podman: false  # Set to true if you want to remove Podman itself
+
   tasks:
     - name: Gather facts about the system
-      setup:
+      ansible.builtin.setup:
 
     - name: Check if Podman is installed
       ansible.builtin.command: command -v podman
@@ -12,65 +17,165 @@
       failed_when: false
       changed_when: false
 
-    - name: Stop and remove CloudLens Agent container 
-      ansible.builtin.shell: "{{ podman_command }} stop {{ cloudlens_agent_container_name }} && {{ podman_command }} rm -f {{ cloudlens_agent_container_name }}"
-      when: podman_installed.rc == 0
-      ignore_errors: yes
+    - name: Display Podman status
+      debug:
+        msg: "Podman is {{ 'installed' if podman_installed.rc == 0 else 'not installed' }}"
 
-    - name: Remove CloudLens sensor image 
-      ansible.builtin.shell: "{{ podman_command }} rmi {{ cloudlens_manager_ip_or_FQDN }}/sensor:latest"
+    - name: Handle CloudLens container removal
       when: podman_installed.rc == 0
-      ignore_errors: yes
+      block:
+        - name: Check if CloudLens container exists
+          ansible.builtin.command: "{{ podman_command }} ps -a --format '{{'{{.Names}}'}}' --filter name={{ cloudlens_agent_container_name }}"
+          register: container_exists
+          changed_when: false
+          failed_when: false
 
-    - name: Remove Podman insecure registry configuration
+        - name: Stop CloudLens Agent container if running
+          ansible.builtin.command: "{{ podman_command }} stop {{ cloudlens_agent_container_name }}"
+          when: cloudlens_agent_container_name in container_exists.stdout_lines
+          register: container_stop
+          failed_when: false
+
+        - name: Remove CloudLens Agent container
+          ansible.builtin.command: "{{ podman_command }} rm -f {{ cloudlens_agent_container_name }}"
+          when: cloudlens_agent_container_name in container_exists.stdout_lines
+          register: container_remove
+
+        - name: Check if CloudLens sensor image exists
+          ansible.builtin.command: "{{ podman_command }} images --format '{{'{{.Repository}}:{{.Tag}}'}}' {{ cloudlens_manager_ip_or_FQDN }}/sensor"
+          register: image_exists
+          changed_when: false
+          failed_when: false
+
+        - name: Remove CloudLens sensor image
+          ansible.builtin.command: "{{ podman_command }} rmi {{ cloudlens_manager_ip_or_FQDN }}/sensor:latest"
+          when: "'sensor:latest' in image_exists.stdout"
+          register: image_remove
+
+    - name: Check if registry configuration exists
+      ansible.builtin.stat:
+        path: /etc/containers/registries.conf.d/cloudlens.conf
+      register: registry_conf_stat
+
+    - name: Remove Podman registry configuration
       ansible.builtin.file:
         path: /etc/containers/registries.conf.d/cloudlens.conf
         state: absent
-      when: registry_type == "insecure"
+      when: registry_conf_stat.stat.exists
+      register: registry_conf_removed
 
-    - name: Reload container registries configuration (Podman) - Undo
-      ansible.builtin.command: "systemctl restart podman.socket"
-      ignore_errors: yes
-      when: registry_type == "insecure"
-
-    - name: Remove CA certificate from VM (for secure registries)
-      ansible.builtin.file:
-        path: "{{ ca_cert_dir }}/cloudlenscerts.crt"
-        state: absent
-      when: registry_type == "secure"
-
-    - name: Update CA certificates on Red Hat (for secure registries) - Undo
-      ansible.builtin.command: update-ca-trust extract
-      become: yes
-      when: registry_type == "secure"
-
-    - name: Remove /var/log/cloudlens directory
-      ansible.builtin.file:
-        path: /var/log/cloudlens
-        state: absent
-
-    - name: Remove /var/tmp/cloudtap directory
-      ansible.builtin.file:
-        path: /var/tmp/cloudtap
-        state: absent
-
-    - name: Remove Podman on RHEL 8+
-      ansible.builtin.dnf:
-        name:
-          - podman
-        state: absent
-      when:
-        - ansible_os_family == 'RedHat'
-        - ansible_distribution_major_version | int >= 8
+    - name: Reload container registries if configuration was removed
+      ansible.builtin.shell: |
+        if systemctl is-active --quiet podman.socket; then
+          systemctl restart podman.socket
+        fi
+      when: 
+        - registry_conf_removed.changed
         - podman_installed.rc == 0
+      failed_when: false
 
-    - name: Remove Podman and container-tools on RHEL 7
-      ansible.builtin.yum:
-        name:
-          - podman
-          - container-tools
-        state: absent
-      when:
-        - ansible_os_family == 'RedHat'
-        - ansible_distribution_major_version | int < 8
+    - name: Handle CA certificate cleanup
+      when: registry_type == "secure"
+      block:
+        - name: Check if CA certificate exists
+          ansible.builtin.stat:
+            path: "{{ ca_cert_dir }}/cloudlenscerts.crt"
+          register: ca_cert_stat
+
+        - name: Remove CA certificate from VM
+          ansible.builtin.file:
+            path: "{{ ca_cert_dir }}/cloudlenscerts.crt"
+            state: absent
+          when: ca_cert_stat.stat.exists
+
+        - name: Check if CA cert in trust store exists
+          ansible.builtin.stat:
+            path: /etc/pki/ca-trust/source/anchors/cloudlens-ca.crt
+          register: ca_trust_stat
+
+        - name: Remove CA cert from trust store
+          ansible.builtin.file:
+            path: /etc/pki/ca-trust/source/anchors/cloudlens-ca.crt
+            state: absent
+          when: ca_trust_stat.stat.exists
+          register: ca_trust_removed
+
+        - name: Update CA trust if certificates were removed
+          ansible.builtin.command: update-ca-trust extract
+          when: ca_trust_removed.changed
+
+    - name: Check and remove CloudLens directories
+      block:
+        - name: Check if directories exist
+          ansible.builtin.stat:
+            path: "{{ item }}"
+          register: dir_stats
+          loop:
+            - /var/log/cloudlens
+            - /var/tmp/cloudtap
+
+        - name: Remove CloudLens directories
+          ansible.builtin.file:
+            path: "{{ item.item }}"
+            state: absent
+          when: item.stat.exists
+          loop: "{{ dir_stats.results }}"
+          loop_control:
+            label: "{{ item.item }}"
+
+    - name: Remove Podman if requested
+      when: 
+        - remove_podman | bool
         - podman_installed.rc == 0
+      block:
+        - name: Confirm Podman removal
+          debug:
+            msg: "WARNING: About to remove Podman. Set remove_podman=false to skip this step."
+
+        - name: Check for running containers
+          ansible.builtin.command: "{{ podman_command }} ps -q"
+          register: running_containers
+          changed_when: false
+          failed_when: false
+
+        - name: Warn about running containers
+          fail:
+            msg: "There are running containers. Please stop all containers before removing Podman."
+          when: running_containers.stdout | length > 0
+
+        - name: Remove Podman on RHEL 8+
+          ansible.builtin.dnf:
+            name:
+              - podman
+              - containernetworking-plugins
+            state: absent
+          when:
+            - ansible_os_family == 'RedHat'
+            - ansible_distribution_major_version | int >= 8
+
+        - name: Remove Podman and container-tools on RHEL 7
+          ansible.builtin.yum:
+            name:
+              - podman
+              - container-tools
+            state: absent
+          when:
+            - ansible_os_family == 'RedHat'
+            - ansible_distribution_major_version | int < 8
+
+        - name: Clean up Podman storage
+          ansible.builtin.file:
+            path: "{{ item }}"
+            state: absent
+          loop:
+            - /var/lib/containers
+            - /etc/containers
+          ignore_errors: yes
+
+    - name: Display cleanup summary
+      debug:
+        msg:
+          - "CloudLens cleanup completed"
+          - "Container removed: {{ container_remove.changed | default(false) }}"
+          - "Image removed: {{ image_remove.changed | default(false) }}"
+          - "Podman removed: {{ remove_podman }}"
