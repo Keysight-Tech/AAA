@@ -131,17 +131,20 @@
         path: "/etc/docker/certs.d/{{ cloudlens_manager_ip_or_FQDN }}"
         state: directory
         mode: '0755'
+      when: registry_type == "secure"
 
     - name: Copy CA cert to Docker trusted certs directory
       copy:
         src: "{{ local_ca_path }}"
         dest: "/etc/docker/certs.d/{{ cloudlens_manager_ip_or_FQDN }}/ca.crt"
         mode: '0644'
+      when: registry_type == "secure"
 
     - name: Restart Docker to apply trusted certs
       ansible.builtin.systemd:
         name: docker
         state: restarted
+      when: registry_type == "secure"
 
     - name: Update CA certificates on Ubuntu
       ansible.builtin.command: update-ca-certificates
@@ -158,18 +161,17 @@
         docker run -v /lib/modules:/lib/modules \
         -v /var/log/cloudlens:/var/log/cloudlens \
         -v /:/host -v /var/run/docker.sock:/var/run/docker.sock \
-        {% if registry_type == 'secure' %}-v "{{ ca_cert_dir }}:/usr/local/share/ca-certificates:ro" {% endif %} \
+        {% if registry_type == 'secure' %}-v "{{ ca_cert_dir }}:/usr/local/share/ca-certificates:ro" {% endif %}\
         --cap-add NET_BROADCAST --cap-add SYS_ADMIN --cap-add SYS_MODULE \
         --cap-add SYS_RESOURCE --cap-add NET_RAW \
         --cap-add NET_ADMIN \
-        {% if registry_type == 'secure' %}--env REQUESTS_CA_BUNDLE="{{ ca_cert_dir }}/cloudlenscerts.crt" {% endif %} \
+        {% if registry_type == 'secure' %}--env REQUESTS_CA_BUNDLE="{{ ca_cert_dir }}/cloudlenscerts.crt" {% endif %}\
         --name "{{ cloudlens_agent_container_name }}" -d --restart=always --net=host \
         --log-opt max-size="{{ log_max_size }}" --log-opt max-file="{{ log_max_file }}" \
         "{{ cloudlens_manager_ip_or_FQDN }}/sensor" --accept_eula yes \
         --project_key "{{ project_key }}" --server "{{ cloudlens_manager_ip_or_FQDN }}" \
         --custom_tags "{{ custom_tags }}" --ssl_verify {% if registry_type == 'secure' %}yes{% else %}no{% endif %}
       when: docker_status.status.ActiveState == "active"
-
 
     - name: Verify CloudLens Agent container is running
       ansible.builtin.shell: >
@@ -180,4 +182,3 @@
         docker_agent_status.rc != 0 or
         docker_agent_status.stdout is not defined or
         docker_agent_status.stdout | trim == ""
-
