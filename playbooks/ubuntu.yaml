@@ -7,36 +7,66 @@
     - name: Gather facts about the system
       ansible.builtin.gather_facts:
 
-    - name: Check if Docker is installed
-      ansible.builtin.command: command -v docker
-      register: docker_installed
+    - name: Check if Docker is installed (multiple methods)
+      ansible.builtin.shell: |
+        if command -v docker &> /dev/null; then
+          echo "found via command"
+          exit 0
+        elif [ -x /usr/bin/docker ]; then
+          echo "found at /usr/bin/docker"
+          exit 0
+        elif [ -x /usr/local/bin/docker ]; then
+          echo "found at /usr/local/bin/docker"
+          exit 0
+        elif command -v docker.io &> /dev/null; then
+          echo "found docker.io"
+          exit 0
+        else
+          echo "Docker not found"
+          exit 1
+        fi
+      register: docker_check
       failed_when: false
       changed_when: false
 
     - name: Debug Docker installation status
       debug:
-        msg: "Docker is {{ 'installed' if docker_installed.rc == 0 else 'not installed' }}."
+        msg: "Docker check result: {{ docker_check.stdout }} (rc={{ docker_check.rc }})"
 
-    - name: Remove any malformed Docker repository files
-      ansible.builtin.shell: |
-        if [ -f /etc/apt/sources.list.d/download_docker_com_linux_ubuntu.list ]; then
-          echo "Removing malformed Docker repository file."
-          rm -f /etc/apt/sources.list.d/download_docker_com_linux_ubuntu.list
-        fi
-      register: remove_docker_repo
-      changed_when: remove_docker_repo is succeeded
+    - name: Check if Docker service exists
+      ansible.builtin.stat:
+        path: /lib/systemd/system/docker.service
+      register: docker_service_file
 
-    - name: Get Ubuntu codename
-      ansible.builtin.command: lsb_release -cs
-      register: ubuntu_codename
-      when: docker_installed.rc != 0
+    - name: Set Docker installation status
+      set_fact:
+        docker_is_installed: "{{ docker_check.rc == 0 or docker_service_file.stat.exists }}"
+
+    - name: Debug final Docker installation status
+      debug:
+        msg: "Docker is {{ 'installed' if docker_is_installed else 'not installed' }}."
 
     - name: Install Docker on Ubuntu if not installed
+      when: not docker_is_installed
       block:
+        - name: Remove any malformed Docker repository files
+          ansible.builtin.file:
+            path: "{{ item }}"
+            state: absent
+          loop:
+            - /etc/apt/sources.list.d/download_docker_com_linux_ubuntu.list
+            - /etc/apt/sources.list.d/docker.list
+          register: remove_docker_repo
+
+        - name: Get Ubuntu codename
+          ansible.builtin.command: lsb_release -cs
+          register: ubuntu_codename
+          changed_when: false
+
         - name: Update the package index
           ansible.builtin.apt:
             update_cache: yes
-          when: docker_installed.rc != 0
+            cache_valid_time: 3600
 
         - name: Install prerequisites for Docker
           ansible.builtin.apt:
@@ -46,62 +76,82 @@
               - curl
               - software-properties-common
               - gnupg
+              - lsb-release
             state: present
-          when: docker_installed.rc != 0
+
+        - name: Create directory for Docker GPG key
+          ansible.builtin.file:
+            path: /usr/share/keyrings
+            state: directory
+            mode: '0755'
 
         - name: Add Docker's official GPG key
           ansible.builtin.shell: |
             curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor --yes -o /usr/share/keyrings/docker-archive-keyring.gpg
           args:
             executable: /bin/bash
-          register: gpg_key_added
-          changed_when: gpg_key_added.rc == 0
-          when: docker_installed.rc != 0
-
-        - name: Debug GPG key installation status
-          debug:
-            msg: "GPG key installation was {{ 'successful' if gpg_key_added.rc == 0 else 'unsuccessful' }}."
+            creates: /usr/share/keyrings/docker-archive-keyring.gpg
 
         - name: Add Docker repository
           ansible.builtin.apt_repository:
             repo: "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu {{ ubuntu_codename.stdout }} stable"
             state: present
-          when: docker_installed.rc != 0
-          
+            filename: docker
+            
+        - name: Update package index after adding Docker repo
+          ansible.builtin.apt:
+            update_cache: yes
+
         - name: Install Docker packages
           ansible.builtin.apt:
             name:
               - docker-ce
               - docker-ce-cli
               - containerd.io
-            state: latest
-            update_cache: yes
-          when: docker_installed.rc != 0
+            state: present
+            install_recommends: yes
 
         - name: Ensure Docker service is enabled and started
           ansible.builtin.systemd:
             name: docker
             state: started
             enabled: true
-          when: docker_installed.rc != 0
+            daemon_reload: yes
 
-    - name: Ensure Docker service is running
+    - name: Verify Docker service is active
       ansible.builtin.systemd:
         name: docker
         state: started
-      register: docker_status
-      ignore_errors: yes
+      register: docker_service_verify
+      failed_when: false
 
-    - name: Fail task if Docker service is not active
+    - name: Get Docker service status
+      ansible.builtin.command: systemctl is-active docker
+      register: docker_active_check
+      changed_when: false
+      failed_when: false
+
+    - name: Fail if Docker service is not running
       fail:
-        msg: "Docker service is not running. Please check the Docker installation."
-      when: docker_status.status.ActiveState != "active"
+        msg: "Docker service is not running. Status: {{ docker_active_check.stdout }}"
+      when: docker_active_check.stdout != "active"
 
     - name: Ensure /etc/docker directory exists
       ansible.builtin.file:
         path: /etc/docker
         state: directory
         mode: '0755'
+
+    - name: Check current Docker daemon configuration
+      ansible.builtin.stat:
+        path: /etc/docker/daemon.json
+      register: daemon_json_stat
+
+    - name: Read existing daemon.json if it exists
+      ansible.builtin.slurp:
+        src: /etc/docker/daemon.json
+      register: existing_daemon_json
+      when: daemon_json_stat.stat.exists
 
     - name: Configure Docker daemon for insecure registry
       copy:
@@ -111,73 +161,121 @@
             "insecure-registries": ["{{ cloudlens_manager_ip_or_FQDN }}"]
           }
         mode: '0644'
+        backup: yes
       when: registry_type == "insecure"
+      notify: restart_docker
 
-    - name: Restart Docker service to apply changes
-      ansible.builtin.systemd:
-        name: docker
-        state: restarted
-      when: registry_type == "insecure"
-
-    - name: Transfer CA certificate from local to VM
-      copy:
-        src: "{{ local_ca_path }}"
-        dest: "{{ ca_cert_dir }}/cloudlenscerts.crt"
-        mode: '0644'
+    - name: Handle secure registry configuration
       when: registry_type == "secure"
+      block:
+        - name: Create CA certificate directory
+          ansible.builtin.file:
+            path: "{{ ca_cert_dir }}"
+            state: directory
+            mode: '0755'
 
-    - name: Ensure Docker certs.d directory exists for CloudLens registry
-      file:
-        path: "/etc/docker/certs.d/{{ cloudlens_manager_ip_or_FQDN }}"
-        state: directory
-        mode: '0755'
+        - name: Transfer CA certificate from local to VM
+          copy:
+            src: "{{ local_ca_path }}"
+            dest: "{{ ca_cert_dir }}/cloudlenscerts.crt"
+            mode: '0644'
+          register: ca_cert_copied
 
-    - name: Copy CA cert to Docker trusted certs directory
-      copy:
-        src: "{{ local_ca_path }}"
-        dest: "/etc/docker/certs.d/{{ cloudlens_manager_ip_or_FQDN }}/ca.crt"
-        mode: '0644'
+        - name: Ensure Docker certs.d directory exists for CloudLens registry
+          file:
+            path: "/etc/docker/certs.d/{{ cloudlens_manager_ip_or_FQDN }}"
+            state: directory
+            mode: '0755'
 
-    - name: Restart Docker to apply trusted certs
-      ansible.builtin.systemd:
-        name: docker
-        state: restarted
+        - name: Copy CA cert to Docker trusted certs directory
+          copy:
+            src: "{{ local_ca_path }}"
+            dest: "/etc/docker/certs.d/{{ cloudlens_manager_ip_or_FQDN }}/ca.crt"
+            mode: '0644'
+          notify: restart_docker
 
-    - name: Update CA certificates on Ubuntu
-      ansible.builtin.command: update-ca-certificates
-      become: yes
-      when: registry_type == "secure"
+        - name: Update CA certificates on Ubuntu
+          ansible.builtin.command: update-ca-certificates
+          when: ca_cert_copied.changed
 
-    - name: Force remove existing CloudLens container if exists
-      shell: |
-        docker rm -f "{{ cloudlens_agent_container_name }}" || true
-      ignore_errors: yes
+    - name: Flush handlers to apply Docker configuration
+      meta: flush_handlers
 
-    - name: Install CloudLens Agent
+    - name: Wait for Docker to be ready
+      ansible.builtin.command: docker ps
+      register: docker_ready
+      retries: 5
+      delay: 2
+      until: docker_ready.rc == 0
+      changed_when: false
+
+    - name: Check if CloudLens container exists
+      ansible.builtin.command: docker ps -a --format '{{"{{.Names}}"}}' --filter name={{ cloudlens_agent_container_name }}
+      register: existing_container
+      changed_when: false
+      failed_when: false
+
+    - name: Check if CloudLens container is running
+      ansible.builtin.command: docker ps --format '{{"{{.Names}}"}}' --filter name={{ cloudlens_agent_container_name }}
+      register: running_container
+      changed_when: false
+      failed_when: false
+
+    - name: Remove existing CloudLens container if it exists
+      ansible.builtin.command: docker rm -f {{ cloudlens_agent_container_name }}
+      when: cloudlens_agent_container_name in existing_container.stdout_lines
+      changed_when: true
+
+    - name: Pull CloudLens sensor image
+      ansible.builtin.command: docker pull {{ cloudlens_manager_ip_or_FQDN }}/sensor
+      register: docker_pull
+      retries: 3
+      delay: 10
+      until: docker_pull.rc == 0
+      when: cloudlens_agent_container_name not in running_container.stdout_lines
+
+    - name: Deploy CloudLens Agent container
       ansible.builtin.shell: |
         docker run -v /lib/modules:/lib/modules \
         -v /var/log/cloudlens:/var/log/cloudlens \
         -v /:/host -v /var/run/docker.sock:/var/run/docker.sock \
-        {% if registry_type == 'secure' %}-v "{{ ca_cert_dir }}:/usr/local/share/ca-certificates:ro" {% endif %} \
+        {% if registry_type == 'secure' %}-v "{{ ca_cert_dir }}:/usr/local/share/ca-certificates:ro" {% endif %}\
         --cap-add NET_BROADCAST --cap-add SYS_ADMIN --cap-add SYS_MODULE \
         --cap-add SYS_RESOURCE --cap-add NET_RAW \
         --cap-add NET_ADMIN \
-        {% if registry_type == 'secure' %}--env REQUESTS_CA_BUNDLE="{{ ca_cert_dir }}/cloudlenscerts.crt" {% endif %} \
+        {% if registry_type == 'secure' %}--env REQUESTS_CA_BUNDLE="{{ ca_cert_dir }}/cloudlenscerts.crt" {% endif %}\
         --name "{{ cloudlens_agent_container_name }}" -d --restart=always --net=host \
         --log-opt max-size="{{ log_max_size }}" --log-opt max-file="{{ log_max_file }}" \
         "{{ cloudlens_manager_ip_or_FQDN }}/sensor" --accept_eula yes \
         --project_key "{{ project_key }}" --server "{{ cloudlens_manager_ip_or_FQDN }}" \
         --custom_tags "{{ custom_tags }}" --ssl_verify {% if registry_type == 'secure' %}yes{% else %}no{% endif %}
-      when: docker_status.status.ActiveState == "active"
+      when: cloudlens_agent_container_name not in running_container.stdout_lines
+      register: container_deploy
 
+    - name: Wait for CloudLens container to start
+      ansible.builtin.pause:
+        seconds: 5
+      when: container_deploy.changed
 
     - name: Verify CloudLens Agent container is running
-      ansible.builtin.shell: >
-        docker ps -f name={{ cloudlens_agent_container_name }} --format '{{"{{"}}.Names{{"}}"}}'
-      register: docker_agent_status
+      ansible.builtin.command: docker ps --format '{{"{{.Names}}"}}' --filter name={{ cloudlens_agent_container_name }}
+      register: final_container_check
       changed_when: false
-      failed_when: >
-        docker_agent_status.rc != 0 or
-        docker_agent_status.stdout is not defined or
-        docker_agent_status.stdout | trim == ""
+      failed_when: cloudlens_agent_container_name not in final_container_check.stdout_lines
 
+    - name: Display CloudLens container status
+      ansible.builtin.shell: docker ps --filter name={{ cloudlens_agent_container_name }} --format 'table {{"{{.Names}}"}}\t{{"{{.Status}}"}}\t{{"{{.Image}}"}}'
+      register: container_status
+      changed_when: false
+
+    - name: Show final container status
+      debug:
+        var: container_status.stdout_lines
+
+  handlers:
+    - name: restart_docker
+      ansible.builtin.systemd:
+        name: docker
+        state: restarted
+        daemon_reload: yes
+      listen: restart_docker
