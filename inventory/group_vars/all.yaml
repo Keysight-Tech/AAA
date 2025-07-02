@@ -12,7 +12,7 @@ local_ca_path: "/Users/brinketu/NewCerts/cloudlenscerts.crt"  # Full cert chain 
 ca_cert_dir: "/etc/ssl/certs"
 
 
-# Log Rotation Settings for CloudLens Agent 
+# Log Rotation Settings for CloudLens Agent.
 log_max_size: "50m"                            
 log_max_file: "5"
 
