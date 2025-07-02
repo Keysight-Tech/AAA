@@ -1,2 +1,12 @@
+# Package management
 podman_command: podman
 ca_cert_dir: "/etc/pki/ca-trust/source/anchors"
+
+# Red Hat specific packages
+common_packages:
+  - curl
+  - wget
+  - vim
+  - htop
+  - net-tools
+  - open-vm-tools

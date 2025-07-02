@@ -1,41 +1,35 @@
-plugin: community.vmware.vmware_vm_inventory
+plugin: vmware_vm_inventory
 strict: False
-hostname: "{{ vcenter_hostname }}"
-username: "{{ vcenter_username }}"
-password: "{{ vcenter_password }}"
-port: 443
+hostname: emea-sa-vcenter.bbn.is.keysight.com
+username: brine@sa.lab
+password: Brave123.
+datacenter: DC
+cluster: Production
 validate_certs: False
+with_tags: True
 
-# Properties to retrieve from vCenter
+# Properties to fetch from vCenter
 properties:
+  - name
   - runtime.powerState
-  - guest.guestState
   - guest.ipAddress
-  - config.guestFullName
-  - config.instanceUuid
-  - summary.config.numCpu
-  - summary.config.memorySizeMB
-  - config.annotation
 
+# Use VM name as hostname instead of the long ID
+hostnames:
+  - name
+
+# Set ansible_host to the IP address
+compose:
+  ansible_host: guest.ipAddress
+
+# Keyed groups - automatically create groups based on VM properties
 keyed_groups:
   # Group by power state
-  - prefix: power
-    key: runtime.powerState
-  # Group by guest OS
-  - prefix: os
-    key: config.guestFullName | lower | regex_replace(' ', '_')
-  # Group by custom tags/annotations
-  - prefix: tag
-    key: config.annotation | default('') | regex_findall('(?i)(?:env|environment)[:=]\\s*(\\w+)') | first | default('untagged')
-
-groups:
-  # VMs that are powered on
-  powered_on: runtime.powerState == "poweredOn"
-  # VMs with IP addresses
-  has_ip: guest.ipAddress is defined and guest.ipAddress != ""
-
-compose:
-  # Use guest IP as ansible_host
-  ansible_host: guest.ipAddress | default(inventory_hostname)
-  # Set memory in GB for easier reading
-  memory_gb: (summary.config.memorySizeMB | int / 1024) | round(1)
+  - key: runtime.powerState
+    prefix: power_state
+    separator: '_'
+  
+  # Group by guest OS ID
+  - key: config.guestId
+    prefix: os
+    separator: '_'

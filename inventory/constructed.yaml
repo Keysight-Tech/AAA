@@ -1,30 +1,15 @@
-plugin: constructed
-strict: false
+# plugin: constructed
+# strict: false
 
-groups:
-  # Group by OS type based on guest OS name
-  ubuntu_vms: "'ubuntu' in (config.guestFullName | lower)"
-  centos_vms: "'centos' in (config.guestFullName | lower)"
-  rhel_vms: "'red hat' in (config.guestFullName | lower)"
-  windows_vms: "'windows' in (config.guestFullName | lower)"
-  
-  # Group by environment from VM annotations
-  prod_vms: "'prod' in (config.annotation | default('') | lower)"
-  dev_vms: "'dev' in (config.annotation | default('') | lower)"
-  test_vms: "'test' in (config.annotation | default('') | lower)"
-  
-  # Combined groups for production VMs by OS
-  ubuntu_prod_vms: "'ubuntu' in (config.guestFullName | lower) and 'prod' in (config.annotation | default('') | lower)"
-  linux_prod_vms: "('ubuntu' in (config.guestFullName | lower) or 'centos' in (config.guestFullName | lower) or 'red hat' in (config.guestFullName | lower)) and 'prod' in (config.annotation | default('') | lower)"
-  windows_prod_vms: "'windows' in (config.guestFullName | lower) and 'prod' in (config.annotation | default('') | lower)"
-  
-  # Active VMs (powered on with IP)
-  active_vms: "runtime.powerState == 'poweredOn' and guest.ipAddress is defined"
+# groups:
+#   # Simple groups that will definitely work
+#   ubuntu_prod_vms: "'ubuntu' in (tags | default([]))"
+#   windows_prod_vms: "'windows' in (tags | default([]))"  
+#   redhat_prod_vms: "'redhat' in (tags | default([]))"
 
-compose:
-  # Set connection details based on OS
-  ansible_user: >-
-    'Administrator' if 'windows' in (config.guestFullName | lower) else 'brine'
-  
-  ansible_connection: >-
-    'winrm' if 'windows' in (config.guestFullName | lower) else 'ssh'
+# compose:
+#   ansible_host: guest.ipAddress | default(inventory_hostname)
+#   ansible_user: >-
+#     {{ 'Administrator' if 'windows' in (tags | default([])) else 'brine' }}
+#   ansible_connection: >-
+#     {{ 'winrm' if 'windows' in (tags | default([])) else 'ssh' }}
