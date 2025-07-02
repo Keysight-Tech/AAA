@@ -3,74 +3,253 @@
   hosts: windows_prod_vms
   
   tasks:
-
     - name: Ensure C:\temp directory exists
       win_file:
         path: C:\temp
         state: directory
 
-    - name: Copy CA certificate to the Windows VM (for SSL verification)
-      win_copy:
-        src: "{{ local_ca_path }}"
-        dest: C:\temp\cloudlens_ca.crt
-      when: ssl_verify == "yes"
-
-    - name: Import CA cert into Trusted Root Certification Authorities
-      win_certificate_store:
-        path: C:\temp\cloudlens_ca.crt
-        store_name: Root
-        state: present
-      when: ssl_verify == "yes"
-
     - name: Check if CloudLens Agent is already installed via registry
+      win_reg_stat:
+        path: HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall
+        name: CloudLens Agent
+      register: cloudlens_registry_check
+
+    - name: Check for CloudLens Agent in registry (alternative method)
       win_shell: |
-        $found = Get-ChildItem -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall" |
-          Where-Object {
-            ($_ | Get-ItemProperty).DisplayName -like "*CloudLens Agent*"
-          }
-        if ($found) {
-          $found | Select-Object -ExpandProperty PSChildName
+        $apps = Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | 
+          Where-Object { $_.DisplayName -like "*CloudLens*" }
+        if ($apps) {
+          @{
+            Installed = $true
+            DisplayName = $apps[0].DisplayName
+            InstallLocation = $apps[0].InstallLocation
+            Version = $apps[0].DisplayVersion
+          } | ConvertTo-Json
+        } else {
+          @{ Installed = $false } | ConvertTo-Json
         }
-      register: cloudlens_installed
+      register: cloudlens_installed_check
       changed_when: false
-      ignore_errors: true
 
-    - name: Uninstall CloudLens Agent if already installed
-      win_shell: |
-        $app = Get-WmiObject -Class Win32_Product | Where-Object { $_.Name -like "*CloudLens Agent*" }
-        if ($app) {
-          $app.Uninstall() | Out-Null
-        }
-      when: cloudlens_installed.stdout != ""
+    - name: Parse installation check result
+      set_fact:
+        cloudlens_is_installed: "{{ (cloudlens_installed_check.stdout | from_json).Installed | default(false) }}"
+        cloudlens_current_version: "{{ (cloudlens_installed_check.stdout | from_json).Version | default('Not installed') }}"
 
-    - name: Transfer CloudLens Agent installer to the Windows VM
-      win_copy:
-        src: "{{ local_installer_path }}"
-        dest: C:\temp\{{ cloudlens_installer_filename }}
-
-    - name: Install CloudLens Agent using silent install
-      win_shell: |
-        C:\temp\{{ cloudlens_installer_filename }} /install /quiet Server="{{ cloudlens_manager_ip_or_FQDN }}" Project_Key="{{ project_key }}" SSL_Verify="{{ ssl_verify }}" Auto_Update="{{ auto_update }}" Custom_Tags="{{ custom_tags }}" -Wait
-      register: silent_install_result
-
-    - name: Display silent install output
+    - name: Display current installation status
       debug:
-        var: silent_install_result.stdout
+        msg: 
+          - "CloudLens Agent installed: {{ cloudlens_is_installed }}"
+          - "Current version: {{ cloudlens_current_version }}"
 
-    - name: Check if installation was successful
-      fail:
-        msg: "CloudLens Agent installation failed. Check the output for errors."
-      when: silent_install_result.rc != 0
-
+    - name: Check if CloudLens Agent service exists
+      win_service:
+        name: CloudLensAgent
+      register: cloudlens_service
+      failed_when: false
 
     - name: Check if CloudLens Agent process is running
       win_shell: |
-        Get-Process -Name "CloudLensAgent_x64" -ErrorAction SilentlyContinue
-      register: cloudlens_process
+        $process = Get-Process -Name "CloudLensAgent*" -ErrorAction SilentlyContinue
+        if ($process) {
+          @{
+            Running = $true
+            ProcessName = $process.Name
+            Id = $process.Id
+          } | ConvertTo-Json
+        } else {
+          @{ Running = $false } | ConvertTo-Json
+        }
+      register: cloudlens_process_check
       changed_when: false
-      ignore_errors: false
+
+    - name: Parse process check result
+      set_fact:
+        cloudlens_is_running: "{{ (cloudlens_process_check.stdout | from_json).Running | default(false) }}"
+
+    - name: Handle SSL certificate if required
+      when: ssl_verify | default('no') | lower == 'yes'
+      block:
+        - name: Check if CA certificate already exists
+          win_stat:
+            path: C:\temp\cloudlens_ca.crt
+          register: existing_ca_cert
+
+        - name: Copy CA certificate to Windows VM
+          win_copy:
+            src: "{{ local_ca_path }}"
+            dest: C:\temp\cloudlens_ca.crt
+          when: not existing_ca_cert.stat.exists
+          register: ca_cert_copied
+
+        - name: Check if certificate is already in store
+          win_shell: |
+            $cert = Get-ChildItem -Path Cert:\LocalMachine\Root | 
+              Where-Object { $_.Subject -like "*CloudLens*" -or $_.Issuer -like "*CloudLens*" }
+            if ($cert) { "exists" } else { "not found" }
+          register: cert_in_store
+          changed_when: false
+
+        - name: Import CA cert into Trusted Root Certification Authorities
+          win_certificate_store:
+            path: C:\temp\cloudlens_ca.crt
+            store_name: Root
+            state: present
+          when: cert_in_store.stdout | trim == "not found"
+
+    - name: Determine if update is needed
+      set_fact:
+        needs_update: "{{ not cloudlens_is_installed or (force_reinstall | default(false)) or (always_update | default(true)) }}"
+
+    - name: Display update decision
+      debug:
+        msg: 
+          - "CloudLens installed: {{ cloudlens_is_installed }}"
+          - "Current version: {{ cloudlens_current_version }}"
+          - "Will update: {{ needs_update }}"
+
+    - name: Perform CloudLens Agent installation/upgrade
+      when: needs_update
+      block:
+        - name: Stop CloudLens service if running
+          win_service:
+            name: CloudLensAgent
+            state: stopped
+          when: 
+            - cloudlens_service.exists | default(false)
+            - cloudlens_is_installed
+
+        - name: Uninstall existing CloudLens Agent
+          win_package:
+            product_id: CloudLens Agent
+            state: absent
+          when: cloudlens_is_installed
+          ignore_errors: yes
+
+        - name: Alternative uninstall method using WMI
+          win_shell: |
+            $app = Get-WmiObject -Class Win32_Product | Where-Object { $_.Name -like "*CloudLens Agent*" }
+            if ($app) {
+              $result = $app.Uninstall()
+              if ($result.ReturnValue -eq 0) {
+                "Uninstall successful"
+              } else {
+                "Uninstall failed with code: $($result.ReturnValue)"
+              }
+            } else {
+              "No CloudLens Agent found to uninstall"
+            }
+          when: 
+            - cloudlens_is_installed
+            - uninstall_method | default('win_package') == 'wmi'
+          register: wmi_uninstall
+
+        - name: Wait for uninstallation to complete
+          win_shell: Start-Sleep -Seconds 10
+          when: cloudlens_is_installed
+
+        - name: Check if installer already exists
+          win_stat:
+            path: C:\temp\{{ cloudlens_installer_filename }}
+          register: existing_installer
+
+        - name: Get checksum of local installer
+          local_action:
+            module: stat
+            path: "{{ local_installer_path }}"
+            checksum_algorithm: sha256
+          register: local_installer_stat
+          become: no
+
+        - name: Get checksum of existing installer if present
+          win_stat:
+            path: C:\temp\{{ cloudlens_installer_filename }}
+            checksum_algorithm: sha256
+          register: remote_installer_stat
+          when: existing_installer.stat.exists
+
+        - name: Transfer CloudLens Agent installer if needed
+          win_copy:
+            src: "{{ local_installer_path }}"
+            dest: C:\temp\{{ cloudlens_installer_filename }}
+          when: >
+            not existing_installer.stat.exists or
+            (remote_installer_stat.stat.checksum | default('')) != local_installer_stat.stat.checksum
+
+        - name: Install CloudLens Agent using silent install
+          win_shell: |
+            $arguments = @(
+              "/install",
+              "/quiet",
+              "Server=`"{{ cloudlens_manager_ip_or_FQDN }}`"",
+              "Project_Key=`"{{ project_key }}`"",
+              "SSL_Verify=`"{{ ssl_verify | default('no') }}`"",
+              "Auto_Update=`"{{ auto_update | default('yes') }}`"",
+              "Custom_Tags=`"{{ custom_tags | default('') }}`""
+            )
+            
+            $process = Start-Process -FilePath "C:\temp\{{ cloudlens_installer_filename }}" `
+              -ArgumentList $arguments `
+              -Wait `
+              -PassThru `
+              -NoNewWindow
+            
+            @{
+              ExitCode = $process.ExitCode
+              Output = "Installation completed with exit code: $($process.ExitCode)"
+            } | ConvertTo-Json
+          register: silent_install_result
+
+        - name: Parse installation result
+          set_fact:
+            install_exit_code: "{{ (silent_install_result.stdout | from_json).ExitCode | int }}"
+
+        - name: Display installation result
+          debug:
+            msg: "Installation {{ 'succeeded' if install_exit_code == 0 else 'failed' }} with exit code: {{ install_exit_code }}"
+
+        - name: Check if installation was successful
+          fail:
+            msg: "CloudLens Agent installation failed with exit code: {{ install_exit_code }}"
+          when: install_exit_code != 0
+
+    - name: Ensure CloudLens Agent service is running
+      win_service:
+        name: CloudLensAgent
+        state: started
+        start_mode: auto
+      register: service_start
+      retries: 3
+      delay: 10
+
+    - name: Verify CloudLens Agent is running
+      win_shell: |
+        $service = Get-Service -Name "CloudLensAgent" -ErrorAction SilentlyContinue
+        $process = Get-Process -Name "CloudLensAgent*" -ErrorAction SilentlyContinue
+        
+        @{
+          ServiceExists = [bool]$service
+          ServiceStatus = if ($service) { $service.Status } else { "Not Found" }
+          ProcessRunning = [bool]$process
+          ProcessCount = if ($process) { @($process).Count } else { 0 }
+        } | ConvertTo-Json
+      register: final_status_check
+      changed_when: false
+
+    - name: Parse final status
+      set_fact:
+        final_status: "{{ final_status_check.stdout | from_json }}"
+
+    - name: Display final status
+      debug:
+        msg:
+          - "Service exists: {{ final_status.ServiceExists }}"
+          - "Service status: {{ final_status.ServiceStatus }}"
+          - "Process running: {{ final_status.ProcessRunning }}"
+          - "Process count: {{ final_status.ProcessCount }}"
 
     - name: Fail if CloudLens Agent is not running
       fail:
-        msg: "CloudLens Agent is not running. The installation may have failed or the agent failed to start."
-      when: cloudlens_process.stdout == ""
+        msg: "CloudLens Agent is not running properly. Service status: {{ final_status.ServiceStatus }}"
+      when: 
+        - not final_status.ProcessRunning or final_status.ServiceStatus != 'Running'
