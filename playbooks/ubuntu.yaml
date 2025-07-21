@@ -34,17 +34,21 @@
         msg: "Docker check result: {{ docker_check.stdout }} (rc={{ docker_check.rc }})"
 
     - name: Check if Docker service exists
-      ansible.builtin.stat:
-        path: /lib/systemd/system/docker.service
-      register: docker_service_file
+      ansible.builtin.systemd:
+        name: docker
+      register: docker_service_check
+      failed_when: false
+      changed_when: false
 
     - name: Set Docker installation status
       set_fact:
-        docker_is_installed: "{{ docker_check.rc == 0 or docker_service_file.stat.exists }}"
+        docker_is_installed: "{{ docker_service_check.status is defined and docker_service_check.status.LoadState != 'not-found' }}"
 
     - name: Debug final Docker installation status
       debug:
-        msg: "Docker is {{ 'installed' if docker_is_installed else 'not installed' }}."
+        msg: 
+          - "Docker service check: {{ docker_service_check.status.LoadState | default('not-found') }}"
+          - "Docker is {{ 'installed' if docker_is_installed else 'not installed' }}"
 
     - name: Install Docker on Ubuntu if not installed
       when: not docker_is_installed
@@ -118,23 +122,69 @@
             enabled: true
             daemon_reload: yes
 
-    - name: Verify Docker service is active
+    - name: Check Docker installation after install attempt
+      ansible.builtin.systemd:
+        name: docker
+      register: docker_post_install_check
+      failed_when: false
+      changed_when: false
+      when: not docker_is_installed
+
+    - name: Ensure Docker service is started and enabled
       ansible.builtin.systemd:
         name: docker
         state: started
-      register: docker_service_verify
-      failed_when: false
+        enabled: yes
+        daemon_reload: yes
+      register: docker_service_start
+      when: docker_is_installed or (docker_post_install_check.status is defined and docker_post_install_check.status.LoadState != 'not-found')
 
-    - name: Get Docker service status
-      ansible.builtin.command: systemctl is-active docker
-      register: docker_active_check
+    - name: Refresh systemd and check Docker service
+      block:
+        - name: Reload systemd daemon
+          ansible.builtin.systemd:
+            daemon_reload: yes
+
+        - name: Check if Docker service exists after installation
+          ansible.builtin.systemd:
+            name: docker
+          register: docker_final_check
+          failed_when: false
+          changed_when: false
+
+        - name: Debug Docker service status
+          debug:
+            msg: 
+              - "Docker service exists: {{ docker_final_check.status is defined }}"
+              - "Docker LoadState: {{ docker_final_check.status.LoadState | default('not-found') }}"
+              - "Docker ActiveState: {{ docker_final_check.status.ActiveState | default('unknown') }}"
+
+        - name: Start Docker service if it exists
+          ansible.builtin.systemd:
+            name: docker
+            state: started
+            enabled: yes
+          when: docker_final_check.status is defined and docker_final_check.status.LoadState != 'not-found'
+          register: docker_start_result
+
+    - name: Verify Docker is functional
+      ansible.builtin.command: docker version
+      register: docker_version_check
+      failed_when: false
       changed_when: false
-      failed_when: false
 
-    - name: Fail if Docker service is not running
+    - name: Fail if Docker is not functional
       fail:
-        msg: "Docker service is not running. Status: {{ docker_active_check.stdout }}"
-      when: docker_active_check.stdout != "active"
+        msg: |
+          Docker installation or startup failed.
+          Docker version check returned: {{ docker_version_check.rc }}
+          Error: {{ docker_version_check.stderr | default('No error message') }}
+          
+          Please manually check the system and try:
+          1. sudo apt update && sudo apt install docker-ce docker-ce-cli containerd.io
+          2. sudo systemctl start docker
+          3. sudo systemctl status docker
+      when: docker_version_check.rc != 0
 
     - name: Ensure /etc/docker directory exists
       ansible.builtin.file:
@@ -215,26 +265,37 @@
       changed_when: false
       failed_when: false
 
-    - name: Check if CloudLens container is running
-      ansible.builtin.command: docker ps --format '{{"{{.Names}}"}}' --filter name={{ cloudlens_agent_container_name }}
-      register: running_container
-      changed_when: false
-      failed_when: false
+    - name: Display current container status
+      debug:
+        msg: "{{ 'Existing CloudLens container found - will be replaced' if cloudlens_agent_container_name in existing_container.stdout_lines else 'No existing CloudLens container found - will perform fresh installation' }}"
 
-    - name: Remove existing CloudLens container if it exists
+    - name: Stop existing CloudLens container if running
+      ansible.builtin.command: docker stop {{ cloudlens_agent_container_name }}
+      when: cloudlens_agent_container_name in existing_container.stdout_lines
+      register: container_stopped
+      failed_when: false
+      changed_when: container_stopped.rc == 0
+
+    - name: Remove existing CloudLens container
       ansible.builtin.command: docker rm -f {{ cloudlens_agent_container_name }}
       when: cloudlens_agent_container_name in existing_container.stdout_lines
+      register: container_removed
       changed_when: true
 
-    - name: Pull CloudLens sensor image
+    - name: Remove CloudLens sensor image to ensure fresh pull
+      ansible.builtin.command: docker rmi {{ cloudlens_manager_ip_or_FQDN }}/sensor
+      register: image_removed
+      failed_when: false
+      changed_when: image_removed.rc == 0
+
+    - name: Pull fresh CloudLens sensor image
       ansible.builtin.command: docker pull {{ cloudlens_manager_ip_or_FQDN }}/sensor
       register: docker_pull
       retries: 3
       delay: 10
       until: docker_pull.rc == 0
-      when: cloudlens_agent_container_name not in running_container.stdout_lines
 
-    - name: Deploy CloudLens Agent container
+    - name: Deploy fresh CloudLens Agent container
       ansible.builtin.shell: |
         docker run -v /lib/modules:/lib/modules \
         -v /var/log/cloudlens:/var/log/cloudlens \
@@ -249,28 +310,56 @@
         "{{ cloudlens_manager_ip_or_FQDN }}/sensor" --accept_eula yes \
         --project_key "{{ project_key }}" --server "{{ cloudlens_manager_ip_or_FQDN }}" \
         --custom_tags "{{ custom_tags }}" --ssl_verify {% if registry_type == 'secure' %}yes{% else %}no{% endif %}
-      when: cloudlens_agent_container_name not in running_container.stdout_lines
       register: container_deploy
 
     - name: Wait for CloudLens container to start
       ansible.builtin.pause:
-        seconds: 5
+        seconds: 10
       when: container_deploy.changed
 
     - name: Verify CloudLens Agent container is running
       ansible.builtin.command: docker ps --format '{{"{{.Names}}"}}' --filter name={{ cloudlens_agent_container_name }}
       register: final_container_check
       changed_when: false
-      failed_when: cloudlens_agent_container_name not in final_container_check.stdout_lines
+      failed_when: false
+
+    - name: Get detailed container status
+      ansible.builtin.shell: |
+        docker inspect {{ cloudlens_agent_container_name }} --format 'Status: {{"{{.State.Status}}"}}, Started: {{"{{.State.StartedAt}}"}}'
+      register: detailed_status
+      changed_when: false
+      failed_when: false
 
     - name: Display CloudLens container status
       ansible.builtin.shell: docker ps --filter name={{ cloudlens_agent_container_name }} --format 'table {{"{{.Names}}"}}\t{{"{{.Status}}"}}\t{{"{{.Image}}"}}'
       register: container_status
       changed_when: false
 
-    - name: Show final container status
+    - name: Show deployment result
+      debug:
+        msg: "Container deployment result: {{ 'SUCCESS' if cloudlens_agent_container_name in final_container_check.stdout_lines else 'FAILED' }}"
+
+    - name: Show container details
       debug:
         var: container_status.stdout_lines
+
+    - name: Show container logs if deployment failed
+      ansible.builtin.command: docker logs --tail 50 {{ cloudlens_agent_container_name }}
+      register: container_logs
+      when: cloudlens_agent_container_name not in final_container_check.stdout_lines
+      failed_when: false
+
+    - name: Display logs if container failed to start
+      debug:
+        var: container_logs.stdout_lines
+      when: container_logs is defined and container_logs.stdout_lines is defined
+
+    - name: Final status check - Fail if container is not running
+      fail:
+        msg: |
+          CloudLens container '{{ cloudlens_agent_container_name }}' failed to start!
+          Please check the logs above for more details.
+      when: cloudlens_agent_container_name not in final_container_check.stdout_lines
 
   handlers:
     - name: restart_docker
