@@ -1,29 +1,51 @@
+# CloudLens Deployment Variables Template
+# Replace the placeholder values with your actual configuration
+
 # General CloudLens Configuration
-cloudlens_manager_ip_or_FQDN: "52.232.181.182"
-project_key: "4d20025297414f7ab840a6e9086de116"
-custom_tags: "Env=Azure Region=US-East2"
-cloudlens_agent_container_name: "cloudlens-agent"
-
-
+cloudlens_manager_ip_or_FQDN: "<YOUR_CLOUDLENS_MANAGER_IP_OR_FQDN>"  # Example: "cloudlens.company.com" or "192.168.1.100"
+project_key: "<YOUR_PROJECT_KEY>"  # Your CloudLens project key (32-character hex string)
+custom_tags: "<YOUR_CUSTOM_TAGS>"  # Example: "Env=Production Region=US-East Team=DevOps"
+cloudlens_agent_container_name: "cloudlens-agent" 
 
 # Registry Configuration
-registry_type: "insecure"  # Set to "secure" if you're using a signed registry
-local_ca_path: "/Users/brinketu/NewCerts/cloudlenscerts.crt"  # Full cert chain (for secure registry)
-ca_cert_dir: "/etc/ssl/certs"
-
+registry_type: "<insecure_or_secure>"  # Set to "insecure" for HTTP or "secure" for HTTPS with certificates
+local_ca_path: "<PATH_TO_CA_CERTIFICATE>"  # Full path to CA certificate file (only needed for secure registry)
+                                           # Example: "/path/to/your/cloudlenscerts.crt"
+ca_cert_dir: "<CA_CERTIFICATE_DIRECTORY>"  # Directory for CA certificates on target hosts
+                                           # Ubuntu default: "/etc/ssl/certs"
+                                           # RHEL/CentOS default: "/etc/pki/ca-trust/source/anchors"
 
 # Log Rotation Settings
-log_max_size: "50m"                            
-log_max_file: "5"
+log_max_size: "50m"  # Maximum size of log file before rotation (e.g., "50m", "100m", "1g")
+log_max_file: "5"  # Number of rotated log files to keep (e.g., "5", "10")
 
+# Python Interpreter Configuration (if needed)
+# Uncomment and set the appropriate interpreter for your target systems
+# ansible_python_interpreter: /usr/bin/python3        # Common for modern Ubuntu/Debian
+# ansible_python_interpreter: /usr/libexec/platform-python  # RHEL 8/CentOS 8
+# ansible_python_interpreter: /usr/bin/python         # Legacy systems
 
-
-
-
-# Python interpreter for RHEL/CentOS/ubuntu (important for Ansible to work correctly)
-# ansible_python_interpreter: /usr/bin/python3 
-# ansible_python_interpreter: /usr/libexec/platform-python
-# Replace if dir or custom python interpreter is used. Refer to 
-# Ansible interpreter discovery reference:( ignore warning)
-# https://docs.ansible.com/ansible-core/2.18/reference_appendices/interpreter_discovery.html
-
+# Notes:
+# 1. cloudlens_manager_ip_or_FQDN: This should be the IP address or fully qualified domain name 
+#    of your CloudLens Manager server
+#
+# 2. project_key: This is a unique identifier for your CloudLens project. You can obtain this
+#    from your CloudLens Manager dashboard
+#
+# 3. custom_tags: These are key-value pairs used to tag and organize your CloudLens agents.
+#    Use format "Key1=Value1 Key2=Value2" with spaces between pairs
+#
+# 4. registry_type: 
+#    - Use "insecure" if your CloudLens Manager uses HTTP or self-signed certificates
+#    - Use "secure" if your CloudLens Manager has proper SSL certificates
+#
+# 5. local_ca_path: Only required when registry_type is "secure". This should be the full path
+#    to your CA certificate file on your Ansible control machine
+#
+# 6. ca_cert_dir: The directory where CA certificates are stored on target hosts. This varies
+#    by operating system:
+#    - Ubuntu/Debian: /etc/ssl/certs
+#    - RHEL/CentOS/Fedora: /etc/pki/ca-trust/source/anchors
+#
+# 7. Python interpreter: Only uncomment if Ansible cannot automatically detect the correct
+#    Python interpreter on your target hosts
