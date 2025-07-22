@@ -1,8 +1,24 @@
 plugin: constructed
 strict: false
-
 groups:
-  ubuntu_prod_vms: "'Ubuntu' in tags.OS and tags.Env == 'prod'"
-  redhat_prod_vms: "'RHEL' in tags.OS and tags.Env == 'prod'"
-  windows_prod_vms: "'Windows' in tags.OS and tags.Env == 'prod'"
+  # Define your dynamic groups based on host tags/variables
+  # Format: group_name: "condition_based_on_tags_or_facts"
   
+  # Examples by Operating System and Environment
+  ubuntu_prod_vms: "'<OS_TAG_VALUE>' in tags.OS and tags.Env == '<ENV_TAG_VALUE>'"
+  redhat_prod_vms: "'<OS_TAG_VALUE>' in tags.OS and tags.Env == '<ENV_TAG_VALUE>'"
+  windows_prod_vms: "'<OS_TAG_VALUE>' in tags.OS and tags.Env == '<ENV_TAG_VALUE>'"
+  
+  # Additional group examples:
+  # ubuntu_dev_vms: "'Ubuntu' in tags.OS and tags.Env == 'dev'"
+  # ubuntu_staging_vms: "'Ubuntu' in tags.OS and tags.Env == 'staging'"
+  # all_prod_vms: "tags.Env == 'prod'"
+  # all_ubuntu_vms: "'Ubuntu' in tags.OS"
+  
+# Notes for Ansible Tower/AWX:
+# 1. This file should be saved as a .yml file in your inventory source
+# 2. Ensure your hosts have the required tags (OS, Env) defined
+# 3. The constructed plugin dynamically creates groups based on host facts/variables
+# 4. Replace placeholder values:
+#    - <OS_TAG_VALUE>: Your OS identifier (e.g., "Ubuntu", "RHEL", "Windows")
+#    - <ENV_TAG_VALUE>: Your environment identifier (e.g., "prod", "dev", "staging")
