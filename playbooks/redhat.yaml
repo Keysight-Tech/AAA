@@ -1,6 +1,6 @@
 ---
 - name: Deploy CloudLens Agent to Red Hat VMs with Docker
-  hosts: redhat_prod_vms
+  hosts: redhat_vms
   become: yes
 
   vars:
