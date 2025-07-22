@@ -1,69 +1,81 @@
 ---
-- name: Deploy CloudLens Agent to Red Hat VMs with Podman
+- name: Deploy CloudLens Agent to Red Hat VMs with Docker
   hosts: redhat_prod_vms
   become: yes
 
   vars:
-    podman_command: "{{ 'sudo podman' if ansible_user != 'root' else 'podman' }}"
+    docker_command: "{{ 'sudo docker' if ansible_user != 'root' else 'docker' }}"
 
   tasks:
     - name: Gather facts about the system
       ansible.builtin.setup:
 
-    - name: Check if Podman is installed (multiple methods)
+    - name: Check if Docker is installed (multiple methods)
       ansible.builtin.shell: |
-        if command -v podman &> /dev/null; then
+        if command -v docker &> /dev/null; then
           echo "found via command"
           exit 0
-        elif [ -x /usr/bin/podman ]; then
-          echo "found at /usr/bin/podman"
+        elif [ -x /usr/bin/docker ]; then
+          echo "found at /usr/bin/docker"
           exit 0
-        elif [ -x /usr/local/bin/podman ]; then
-          echo "found at /usr/local/bin/podman"
+        elif [ -x /usr/local/bin/docker ]; then
+          echo "found at /usr/local/bin/docker"
           exit 0
         else
-          echo "Podman not found"
+          echo "Docker not found"
           exit 1
         fi
-      register: podman_check
+      register: docker_check
       failed_when: false
       changed_when: false
 
-    - name: Debug Podman installation status
+    - name: Debug Docker installation status
       debug:
-        msg: "Podman check result: {{ podman_check.stdout }} (rc={{ podman_check.rc }})"
+        msg: "Docker check result: {{ docker_check.stdout }} (rc={{ docker_check.rc }})"
 
-    - name: Install Podman if not present
-      when: podman_check.rc != 0
+    - name: Install Docker if not present
+      when: docker_check.rc != 0
       block:
-        - name: Install Podman on RHEL 8+
-          ansible.builtin.dnf:
+        - name: Install Docker prerequisites
+          ansible.builtin.package:
             name:
-              - podman
-              - containernetworking-plugins
+              - yum-utils
+              - device-mapper-persistent-data
+              - lvm2
             state: present
-          when:
-            - ansible_os_family == 'RedHat'
-            - ansible_distribution_major_version | int >= 8
 
-        - name: Install Podman on RHEL 7
-          ansible.builtin.yum:
+        - name: Add Docker repository
+          ansible.builtin.yum_repository:
+            name: docker-ce-stable
+            description: Docker CE Stable - $basearch
+            baseurl: https://download.docker.com/linux/centos/$releasever/$basearch/stable
+            enabled: yes
+            gpgcheck: yes
+            gpgkey: https://download.docker.com/linux/centos/gpg
+
+        - name: Install Docker CE
+          ansible.builtin.package:
             name:
-              - podman
-              - container-tools
+              - docker-ce
+              - docker-ce-cli
+              - containerd.io
+              - docker-compose-plugin
             state: present
-          when:
-            - ansible_os_family == 'RedHat'
-            - ansible_distribution_major_version | int < 8
 
-    - name: Verify Podman installation
-      ansible.builtin.command: podman --version
-      register: podman_version
+        - name: Start and enable Docker service
+          ansible.builtin.systemd:
+            name: docker
+            state: started
+            enabled: yes
+
+    - name: Verify Docker installation
+      ansible.builtin.command: docker --version
+      register: docker_version
       changed_when: false
 
-    - name: Display Podman version
+    - name: Display Docker version
       debug:
-        msg: "Podman version: {{ podman_version.stdout }}"
+        msg: "Docker version: {{ docker_version.stdout }}"
 
     - name: Create required directories
       ansible.builtin.file:
@@ -73,50 +85,56 @@
       loop:
         - /var/log/cloudlens
         - /var/tmp/cloudtap
-        - /etc/containers/registries.conf.d
+        - /etc/docker/certs.d
 
     - name: Check current registry configuration
       ansible.builtin.stat:
-        path: /etc/containers/registries.conf.d/cloudlens.conf
-      register: registry_conf_stat
+        path: "/etc/docker/daemon.json"
+      register: daemon_json_stat
 
-    - name: Configure Podman for insecure registry
+    - name: Configure Docker for insecure registry
       when: registry_type == "insecure"
       block:
-        - name: Create insecure registry configuration
+        - name: Read existing daemon.json if it exists
+          ansible.builtin.slurp:
+            src: /etc/docker/daemon.json
+          register: existing_daemon_json
+          when: daemon_json_stat.stat.exists
+          failed_when: false
+
+        - name: Parse existing daemon.json
+          set_fact:
+            daemon_config: "{{ existing_daemon_json.content | b64decode | from_json if daemon_json_stat.stat.exists else {} }}"
+
+        - name: Update daemon.json with insecure registry
           copy:
-            dest: /etc/containers/registries.conf.d/cloudlens.conf
-            content: |
-              [[registry]]
-              location = "{{ cloudlens_manager_ip_or_FQDN }}"
-              insecure = true
+            dest: /etc/docker/daemon.json
+            content: "{{ daemon_config | combine({'insecure-registries': (daemon_config['insecure-registries'] | default([])) + [cloudlens_manager_ip_or_FQDN] if cloudlens_manager_ip_or_FQDN not in (daemon_config['insecure-registries'] | default([])) else daemon_config['insecure-registries'] | default([])}) | to_nice_json }}"
             mode: '0644'
             backup: yes
-          register: registry_config_changed
+          register: daemon_config_changed
 
-        - name: Reload Podman configuration
-          ansible.builtin.shell: |
-            if systemctl is-active --quiet podman.socket; then
-              systemctl restart podman.socket
-            fi
-          when: registry_config_changed.changed
-          ignore_errors: yes
+        - name: Reload Docker daemon
+          ansible.builtin.systemd:
+            name: docker
+            state: reloaded
+          when: daemon_config_changed.changed
 
     - name: Handle secure registry configuration
       when: registry_type == "secure"
       block:
-        - name: Create CA certificate directory
+        - name: Create CA certificate directory for Docker
           ansible.builtin.file:
-            path: "{{ ca_cert_dir }}"
+            path: "/etc/docker/certs.d/{{ cloudlens_manager_ip_or_FQDN }}"
             state: directory
             mode: '0755'
 
-        - name: Transfer CA certificate from local to VM
+        - name: Transfer CA certificate for Docker
           copy:
             src: "{{ local_ca_path }}"
-            dest: "{{ ca_cert_dir }}/cloudlenscerts.crt"
+            dest: "/etc/docker/certs.d/{{ cloudlens_manager_ip_or_FQDN }}/ca.crt"
             mode: '0644'
-          register: ca_cert_copied
+          register: docker_ca_cert_copied
 
         - name: Copy CA certificate to system trust store
           copy:
@@ -127,56 +145,49 @@
 
         - name: Update CA trust
           ansible.builtin.command: update-ca-trust extract
-          when: ca_cert_copied.changed or ca_trust_copied.changed
-
-        - name: Create secure registry configuration
-          copy:
-            dest: /etc/containers/registries.conf.d/cloudlens.conf
-            content: |
-              [[registry]]
-              location = "{{ cloudlens_manager_ip_or_FQDN }}"
-              insecure = false
-            mode: '0644'
-            backup: yes
+          when: docker_ca_cert_copied.changed or ca_trust_copied.changed
 
     - name: Check if CloudLens container exists
-      ansible.builtin.command: "{{ podman_command }} ps -a --format '{{'{{.Names}}'}}' --filter name={{ cloudlens_agent_container_name }}"
+      ansible.builtin.command: "{{ docker_command }} ps -a --format '{{'{{.Names}}'}}' --filter name={{ cloudlens_agent_container_name }}"
       register: existing_container
       changed_when: false
       failed_when: false
 
-    - name: Check if CloudLens container is running
-      ansible.builtin.command: "{{ podman_command }} ps --format '{{'{{.Names}}'}}' --filter name={{ cloudlens_agent_container_name }}"
-      register: running_container
-      changed_when: false
-      failed_when: false
+    - name: Display current container status
+      debug:
+        msg: "{{ 'Existing CloudLens container found - will be replaced' if cloudlens_agent_container_name in existing_container.stdout_lines else 'No existing CloudLens container found - will perform fresh installation' }}"
 
-    - name: Get container status if it exists
-      ansible.builtin.command: "{{ podman_command }} inspect -f '{{'{{.State.Status}}'}}' {{ cloudlens_agent_container_name }}"
-      register: container_status
+    - name: Stop existing CloudLens container if running
+      ansible.builtin.command: "{{ docker_command }} stop {{ cloudlens_agent_container_name }}"
       when: cloudlens_agent_container_name in existing_container.stdout_lines
-      changed_when: false
+      register: container_stopped
       failed_when: false
+      changed_when: container_stopped.rc == 0
 
-    - name: Remove existing CloudLens container if it exists
-      ansible.builtin.command: "{{ podman_command }} rm -f {{ cloudlens_agent_container_name }}"
+    - name: Remove existing CloudLens container
+      ansible.builtin.command: "{{ docker_command }} rm -f {{ cloudlens_agent_container_name }}"
       when: cloudlens_agent_container_name in existing_container.stdout_lines
+      register: container_removed
       changed_when: true
 
-    - name: Pull CloudLens sensor image
+    - name: Remove CloudLens sensor image to ensure new pull
+      ansible.builtin.command: "{{ docker_command }} rmi {{ cloudlens_manager_ip_or_FQDN }}/sensor:latest"
+      register: image_removed
+      failed_when: false
+      changed_when: image_removed.rc == 0
+
+    - name: Pull new CloudLens sensor image
       ansible.builtin.command: >
-        {{ podman_command }} pull
-        {% if registry_type == 'insecure' %}--tls-verify=false{% endif %}
+        {{ docker_command }} pull
         {{ cloudlens_manager_ip_or_FQDN }}/sensor:latest
       register: image_pull
       retries: 3
       delay: 10
       until: image_pull.rc == 0
-      when: cloudlens_agent_container_name not in running_container.stdout_lines
 
-    - name: Deploy CloudLens Agent container
+    - name: Deploy new CloudLens Agent container
       ansible.builtin.shell: |
-        {{ podman_command }} run -d \
+        {{ docker_command }} run -d \
         -v /lib/modules:/lib/modules:ro \
         -v /var/log/cloudlens:/var/log/cloudlens \
         -v /var/tmp/cloudtap:/var/cloudtap \
@@ -202,41 +213,47 @@
         --server "{{ cloudlens_manager_ip_or_FQDN }}" \
         --custom_tags "{{ custom_tags }}" \
         --ssl_verify {% if registry_type == 'secure' %}yes{% else %}no{% endif %}
-      when: cloudlens_agent_container_name not in running_container.stdout_lines
       register: container_deploy
 
     - name: Wait for container to start
       ansible.builtin.pause:
-        seconds: 5
+        seconds: 10
       when: container_deploy.changed
 
     - name: Verify CloudLens Agent container is running
-      ansible.builtin.command: "{{ podman_command }} ps --format '{{'{{.Names}}'}}' --filter name={{ cloudlens_agent_container_name }}"
+      ansible.builtin.command: "{{ docker_command }} ps --format '{{'{{.Names}}'}}' --filter name={{ cloudlens_agent_container_name }}"
       register: final_container_check
       changed_when: false
-      failed_when: cloudlens_agent_container_name not in final_container_check.stdout_lines
+      failed_when: false
 
     - name: Get detailed container status
       ansible.builtin.shell: |
-        {{ podman_command }} inspect {{ cloudlens_agent_container_name }} --format 'Status: {{'{{.State.Status}}'}}, Started: {{'{{.State.StartedAt}}'}}'
+        {{ docker_command }} inspect {{ cloudlens_agent_container_name }} --format 'Status: {{'{{.State.Status}}'}}, Started: {{'{{.State.StartedAt}}'}}'
       register: detailed_status
       changed_when: false
+      failed_when: false
 
     - name: Display container status
       debug:
         msg:
-          - "Container status: {{ detailed_status.stdout }}"
+          - "Container deployment result: {{ 'SUCCESS' if cloudlens_agent_container_name in final_container_check.stdout_lines else 'FAILED' }}"
+          - "Container status: {{ detailed_status.stdout | default('Not available') }}"
           - "Container is {{ 'running' if cloudlens_agent_container_name in final_container_check.stdout_lines else 'not running' }}"
 
     - name: Show container logs if deployment failed
-      ansible.builtin.command: "{{ podman_command }} logs --tail 50 {{ cloudlens_agent_container_name }}"
+      ansible.builtin.command: "{{ docker_command }} logs --tail 50 {{ cloudlens_agent_container_name }}"
       register: container_logs
-      when: 
-        - container_deploy.changed
-        - cloudlens_agent_container_name not in final_container_check.stdout_lines
+      when: cloudlens_agent_container_name not in final_container_check.stdout_lines
       failed_when: false
 
     - name: Display logs if container failed to start
       debug:
         var: container_logs.stdout_lines
       when: container_logs is defined and container_logs.stdout_lines is defined
+
+    - name: Final status check - Fail if container is not running
+      fail:
+        msg: |
+          CloudLens container '{{ cloudlens_agent_container_name }}' failed to start!
+          Please check the logs above for more details.
+      when: cloudlens_agent_container_name not in final_container_check.stdout_lines
