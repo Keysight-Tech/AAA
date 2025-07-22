@@ -1,6 +1,6 @@
 ---
 - name: Uninstall CloudLens Agent from Windows VMs
-  hosts: windows_prod_vms
+  hosts: windows_vms
   
   tasks:
     - name: Check if CloudLens Agent is installed via registry
