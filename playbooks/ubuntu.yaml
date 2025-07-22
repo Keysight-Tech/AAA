@@ -282,20 +282,14 @@
       register: container_removed
       changed_when: true
 
-    - name: Remove CloudLens sensor image to ensure fresh pull
-      ansible.builtin.command: docker rmi {{ cloudlens_manager_ip_or_FQDN }}/sensor
-      register: image_removed
-      failed_when: false
-      changed_when: image_removed.rc == 0
-
-    - name: Pull fresh CloudLens sensor image
+    - name: Pull CloudLens sensor image
       ansible.builtin.command: docker pull {{ cloudlens_manager_ip_or_FQDN }}/sensor
       register: docker_pull
       retries: 3
       delay: 10
       until: docker_pull.rc == 0
 
-    - name: Deploy fresh CloudLens Agent container
+    - name: Deploy CloudLens Agent container
       ansible.builtin.shell: |
         docker run -v /lib/modules:/lib/modules \
         -v /var/log/cloudlens:/var/log/cloudlens \
