@@ -1,6 +1,6 @@
 ---
 - name: Cleanup CloudLens Agent and Docker from Ubuntu VMs
-  hosts: ubuntu_prod_vms
+  hosts: ubuntu_vms
   become: yes
 
   vars:
