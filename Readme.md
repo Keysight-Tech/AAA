@@ -16,15 +16,17 @@ The automation covers every step from initial setup to agent health validation:
 
 ## ⚠️ Note
 
-This deployment framework supports scaling to thousands of servers across hybrid infrastructures using either static , dynamic inventory plugins AWX and Ansible Towers.
+This deployment framework supports scaling to thousands of servers across hybrid infrastructures using either static inventories, dynamic inventory plugins, **Ansible Tower/AWX**, and is optimized for **NSX-T** managed environments.
 
 ---
 
 ## 📈 Scaling Deployments
 
 For large-scale infrastructure:
-- Use dynamic inventories like `azure_rm`, `ec2`, `gcp_compute` `oci`, or `vmware_vm_inventory`.
-- Use `constructed.yaml` to group VMs dynamically based on tags.
+- Use dynamic inventories leveraging **NSX-T tags** and **vCenter inventory**
+- Integrate with **Ansible Tower** for centralized job management and scheduling
+- Use `constructed.yaml` to group VMs dynamically based on NSX-T security tags and logical constructs
+- Leverage Tower's **survey features** for parameterized deployments
 
 📘 **[Explore Ansible dynamic inventory plugins](https://docs.ansible.com/ansible/latest/plugins/inventory.html)**
 
@@ -41,31 +43,46 @@ For large-scale infrastructure:
 | `redhat_cleanup.yaml`     | Remove Podman, agent, and config from RHEL                             |
 | `windows_cleanup.yaml`    | Uninstall agent from Windows and remove installer                      |
 | `inventory/group_vars/`   | Group-specific variables per OS/environment                            |
-| `inventory/azure_rm.yaml` | Azure dynamic inventory configuration                                  |
-| `constructed.yaml`        | Build dynamic groups based on tags                                     |
-| `ansible.cfg`             | Ansible config including SSH key path, logging, etc.                  |
-| `deploy.yaml`             | Master deployment sequence across all environments                    |
-| `cleanup.yaml`             | Master cleanup sequence across all environments                    |
+| `inventory/azure_rm.yaml` | Dynamic inventory configuration (example for cloud providers)           |
+| `constructed.yaml`        | Build dynamic groups based on NSX-T tags                               |
+| `ansible.cfg`             | Ansible config including SSH key path, logging, etc.                   |
+| `deploy.yaml`             | Master deployment sequence across all environments                     |
+| `cleanup.yaml`            | Master cleanup sequence across all environments                        |
 | `ansible.log`             | Centralized execution log                                              |
 
 ---
 
 ## 🔧 Prerequisites
 
+### For Ansible Tower Integration
 
+1. **Tower/AWX Setup**
+   - Ensure credentials are configured for target environments
+   - Set up inventory sources pointing to NSX-T/vCenter
+   - Configure job templates for each playbook
+   - Set up notification templates for deployment status
 
-## 🧰 CLI Installation Links for Major Cloud Providers
+2. **NSX-T Integration**
+   - API access to NSX-T Manager
+   - Proper tag structure on VMs for grouping
+   - Network connectivity between Tower and NSX-T managed VMs
 
-- **[Install Azure CLI (All Platforms)](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)**
-- **[Install AWS CLI (All Platforms)](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html)**
-- **[Install Google Cloud SDK (gcloud CLI)](https://cloud.google.com/sdk/docs/install)**
-- **[Install Oracle Cloud CLI (OCI CLI)](https://docs.oracle.com/en-us/iaas/Content/API/SDKDocs/cliinstall.htm)**
-- **[Install IBM Cloud CLI](https://cloud.ibm.com/docs/cli?topic=cli-install-ibmcloud-cli)**
-- **[Install Alibaba Cloud CLI](https://www.alibabacloud.com/help/en/developer-reference/install-the-alibaba-cloud-cli)**
-- **[Install OpenStack CLI (Python OpenStackClient)](https://docs.openstack.org/python-openstackclient/latest/install/index.html)**
-- **[Install VMware vSphere CLI](https://developer.vmware.com/docs/11758/vsphere-cli-7-0-u3c)**
+## 🧰 Dynamic Inventory Plugins for Enterprise Environments
 
+- **[VMware – community.vmware](https://galaxy.ansible.com/ui/repo/published/community/vmware/)**  
+  For orchestrating vSphere/ESXi environments with NSX-T and using dynamic inventory via `vmware_vm_inventory`.
 
+- **[Community General – community.general](https://galaxy.ansible.com/ui/repo/published/community/general/)**  
+  A catch-all collection for many infrastructure plugins, including NSX-T related modules.
+
+- **[Azure – azcollection](https://galaxy.ansible.com/ui/repo/published/azure/azcollection/)** *(If using hybrid cloud)*  
+  For managing Azure infrastructure with the `azure_rm` inventory plugin.
+
+- **[AWS – amazon.aws](https://galaxy.ansible.com/ui/repo/published/amazon/aws/)** *(If using hybrid cloud)*  
+  Supports dynamic inventory using the `aws_ec2` plugin.
+
+- **[Red Hat – redhat.rhel_system_roles](https://galaxy.ansible.com/ui/repo/published/redhat/rhel_system_roles/)**  
+  For managing RHEL systems in virtualized environments using predefined system roles.
 
 ## ⚙️ Step 2: Install Ansible 2.16  ====> 📘 **[Install Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)**
 
@@ -77,15 +94,12 @@ For large-scale infrastructure:
 ```bash
 # Upgrade pip first
 pip3 install --upgrade pip
-``` 
+
 # Install Ansible 2.16 (latest stable)
-```
 pip3 install ansible-core==2.16.12
 pip3 install ansible==9.12.0
-```
 
 # Verify installation
-```
 ansible --version
 ```
 ---
@@ -99,42 +113,40 @@ ansible --version
 ### 2.2 Install Essential Python Dependencies
 
 ```bash
-
 # Core dependencies
 pip3 install paramiko requests PyYAML jinja2 cryptography
-```
 
 # JSON/XML processing
-```
 pip3 install xmltodict pycparser
-```
 
 # Verify core installation
-```
 python3 -c "import ansible; print(f'Ansible version: {ansible.__version__}')"
+```
 
-``` 
+## ☁️ Step 3: VMware/NSX-T Integration Setup
 
-## ☁️ Step 3: Azure Integration Setup
-
-### 3.1 Install Azure CLI for any mac/windows/ubuntu/redhat etc ====> 📘 **[Azure CLI Documentation](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)**
-
-### 3.2 Install Azure Python SDK (Compatible Versions) ====> 📘 **[Azure SDK for Python](https://docs.microsoft.com/en-us/azure/developer/python/)**
+### 3.1 Install VMware Python SDK for NSX-T Integration
 
 ```bash
-# Core Azure packages (Compatible versions for Ansible 2.16)
-pip3 install azure-identity==1.15.0
-pip3 install azure-mgmt-compute==30.4.0
-pip3 install azure-mgmt-network==25.2.0
-pip3 install azure-mgmt-resource==23.0.1
-pip3 install azure-mgmt-core==1.4.0
-pip3 install azure-common==1.1.28
-pip3 install azure-core==1.30.0
-pip3 install msrestazure==0.6.4
+# Core VMware packages for NSX-T and vCenter
+pip3 install pyvmomi==8.0.1.0
+pip3 install vsphere-automation-sdk==8.0.1.0
+pip3 install vapi-client-bindings==4.0.0
+
+# Additional dependencies for API interactions
+pip3 install requests-toolbelt==1.0.0
+pip3 install urllib3==2.0.7
 ```
-# Additional Azure services (optional)
-pip3 install azure-mgmt-storage==21.0.0
-pip3 install azure-mgmt-keyvault==10.2.3
+
+### 3.2 Install VMware Ansible Collection
+
+```bash
+# Install VMware collection for NSX-T integration
+ansible-galaxy collection install community.vmware:==4.0.0
+
+# Verify installation
+ansible-galaxy collection list | grep vmware
+```
 
 ### 3.3 Install WinRM Dependencies for Windows VM Management ====> 📘 **[Ansible Windows Guide](https://docs.ansible.com/ansible/latest/os_guide/windows_winrm.html#windows-winrm)**
 
@@ -145,65 +157,27 @@ pip3 install requests-ntlm==1.2.0
 pip3 install xmltodict==0.13.0
 ```
 
-### 3.3 Install Azure Ansible Collection ====> 📘 **[Azure Collection Documentation](https://docs.ansible.com/ansible/latest/collections/azure/azcollection/)**
+### 3.4 Configure NSX-T Dynamic Inventory
 
+Create a dynamic inventory configuration for NSX-T:
 
-# Install compatible Azure collection
-```
-ansible-galaxy collection install azure.azcollection:==2.3.0
-```
-
-# Verify installation
-```
-ansible-galaxy collection list | grep azure
-```
-
-## Depending on your Target ENV (AWS, Azure, GCP, etc), install Ansible Galaxy collections for dynamic inventory and resource automation
-
-- **[Azure – azcollection](https://galaxy.ansible.com/ui/repo/published/azure/azcollection/)**  
-  For managing Azure infrastructure with the `azure_rm` inventory plugin and Azure modules.
-
-- **[AWS – amazon.aws](https://galaxy.ansible.com/ui/repo/published/amazon/aws/)**  
-  Supports dynamic inventory using the `aws_ec2` plugin and AWS resource automation.
-
-- **[GCP – google.cloud](https://galaxy.ansible.com/ui/repo/published/google/cloud/)**  
-  Integrates with GCP using the `gcp_compute` inventory plugin and GCP modules.
-
-- **[VMware – community.vmware](https://galaxy.ansible.com/ui/repo/published/community/vmware/)**  
-  For orchestrating vSphere/ESXi environments and using dynamic inventory via `vmware_vm_inventory`.
-
-- **[OpenStack – openstack.cloud](https://galaxy.ansible.com/ui/repo/published/openstack/cloud/)**  
-  Enables provisioning and dynamic inventory of OpenStack workloads.
-
-- **[Kubernetes – kubernetes.core](https://galaxy.ansible.com/ui/repo/published/kubernetes/core/)**  
-  Manages Kubernetes resources and supports dynamic inventory for clusters.
-
-- **[Red Hat – redhat.rhel_system_roles](https://galaxy.ansible.com/ui/repo/published/redhat/rhel_system_roles/)**  
-  For managing RHEL systems in cloud or hybrid environments using predefined system roles.
-
-- **[Community General – community.general](https://galaxy.ansible.com/ui/repo/published/community/general/)**  
-  A catch-all collection for many infrastructure plugins, including legacy inventory methods.
-
-- **[OCI (Oracle Cloud) – oracle.oci](https://galaxy.ansible.com/ui/repo/published/oracle/oci/)**  
-  For Oracle Cloud Infrastructure automation and dynamic inventory.
-
-- **[IBM Cloud – ibm.cloudcollection](https://galaxy.ansible.com/ui/repo/published/ibm/cloudcollection/)**  
-  For interacting with IBM Cloud services.
-
-- **[Alibaba Cloud – alibaba.cloud](https://galaxy.ansible.com/ui/repo/published/alibaba/cloud/)**  
-  Supports Alibaba Cloud automation and inventory.
-
-  ```
-
-### ✅ Install Azure Identity SDK
-
-```
-pip install azure-identity
-```
-
-# confirm identity
-```
-python3 -c "from azure.identity import AzureCliCredential; print(AzureCliCredential().get_token('https://management.azure.com/.default'))"
+```yaml
+# inventory/nsxt_inventory.yaml
+plugin: community.vmware.vmware_vm_inventory
+strict: False
+hostname: vcenter.example.com
+username: administrator@vsphere.local
+password: "{{ vault_vcenter_password }}"
+validate_certs: False
+with_tags: True
+properties:
+  - name
+  - guest.ipAddress
+  - config.annotation
+  - summary.runtime.powerState
+  - guest.guestId
+  - config.hardware.numCPU
+  - config.hardware.memoryMB
 ```
 
 ### Linux VMs
@@ -219,7 +193,7 @@ python3 -c "from azure.identity import AzureCliCredential; print(AzureCliCredent
 - Local administrator privileges
 
 ---
-history
+
 > **Important for Windows:**
 > - Ensure the `.exe` installer is correct and compatible
 > - Ensure the VM can resolve and connect to `cloudlens_manager_ip_or_FQDN`
@@ -227,12 +201,49 @@ history
 
 ---
 
+## 🏗️ Ansible Tower Configuration
+
+### Setting Up Job Templates
+
+1. **Create Inventory Source**
+   - Type: VMware vCenter
+   - Source Variables: Include NSX-T tag filtering
+   - Update on Launch: Yes
+
+2. **Create Job Templates**
+   ```yaml
+   # Example Job Template Configuration
+   Name: Deploy CloudLens - Ubuntu
+   Inventory: NSX-T Dynamic Inventory
+   Project: CloudLens Deployment
+   Playbook: playbooks/ubuntu.yaml
+   Credentials: 
+     - SSH Credential
+     - Vault Credential
+   Extra Variables:
+     cloudlens_version: "{{ survey_cloudlens_version }}"
+   ```
+
+3. **Configure Surveys** for parameterized deployments
+   - CloudLens version selection
+   - Environment targeting (dev/staging/prod)
+   - Registry selection
 
 ## Connectivity test and Deployment Commands
 
+### For Tower/AWX Users
+
+Use the Tower UI to:
+1. Launch job templates for deployment
+2. Monitor real-time job output
+3. Schedule recurring deployments
+4. Set up workflow templates for multi-stage deployments
+
+### For CLI Users
+
 ## see host mapping
-```
-ansible-inventory -i inventory/azure_rm.yaml --list | jq  
+```bash
+ansible-inventory -i inventory/nsxt_inventory.yaml --list | jq
 ```
 
 ---
@@ -245,21 +256,20 @@ To simplify execution across all environments, two master playbooks are provided
 
 ### ✅ `deploy.yaml` – Unified Deployment
 
-```
+```bash
 ansible-playbook -i inventory/ deploy.yaml
 ```
 
 ### For unified cleanup:
 
-```
+```bash
 ansible-playbook -i inventory/ cleanup.yaml
 ```
 
-# For specifc playbooks use below: 
+# For specific playbooks use below: 
 
 ### Ubuntu Linux Deployment
 ```bash
-
 ansible ubuntu_prod_vms -i inventory/ -m ping #test connections to ubuntu vms
 
 ansible-playbook -i inventory/ playbooks/ubuntu.yaml   #deploy
@@ -267,30 +277,27 @@ ansible-playbook -i inventory/ playbooks/ubuntu.yaml   #deploy
 
 ### RHEL/CentOS Deployment
 ```bash
-
-ansible all -i inventory/azure_rm.yaml -m ping  #test connection
+ansible redhat_prod_vms -i inventory/ -m ping  #test connection
 
 ansible-playbook -i inventory/ playbooks/redhat.yaml   #deploy
 ```
 
 ### Windows Deployment
 ```bash
-
 ansible windows_prod_vms -i inventory/ -m win_ping #test connection
 
 ansible-playbook -i inventory/ playbooks/windows.yaml   #deploy
 ```
 
-### Cleanup - Ubuntu
+### Cleanup Commands
 ```bash
+# Ubuntu
 ansible-playbook -i inventory/ playbooks/ubuntu_cleanup.yaml 
-```
-### Cleanup - RHEL/CentOS
-```bash
+
+# RHEL/CentOS
 ansible-playbook -i inventory/ playbooks/redhat_cleanup.yaml 
-```
-### Cleanup - Windows
-```bash
+
+# Windows
 ansible-playbook -i inventory/ playbooks/windows_cleanup.yaml 
 ```
 
@@ -323,13 +330,19 @@ All logs are written to:
 - Providing an audit trail of Ansible executions
 - Diagnosing interpreter or module compatibility issues
 
+### 🗼 Tower Integration
+When using Ansible Tower, logs are also available in:
+- Tower Job Output UI
+- Tower Database (for historical analysis)
+- Exported via Tower API for external logging systems
+
 --
 
 ## Useful Commands
 
 - Dry run:
 ```bash
-ansible-playbook -i inventory.ini playbook(e.g ubuntu.yaml) --syntax-check
+ansible-playbook -i inventory.ini playbook.yaml --syntax-check
 ```
 
 - Set interpreter explicitly:
@@ -361,6 +374,13 @@ ansible_python_interpreter=/usr/bin/python3
 - Install via **EPEL repositories** for tested packages
 - Use **Python 3.9+** when available
 
+### NSX-T Specific Issues
+
+- **Tag synchronization delays:**
+> NSX-T tags may take 30-60 seconds to propagate. Consider adding wait tasks or retry logic.
+
+- **API rate limiting:**
+> Large environments may hit NSX-T API limits. Use Tower's throttling features.
 
 - **Broken pipe / shared connection closed:**
 > Typically SSH or resource timeout. Retry or increase timeout in `ansible.cfg`
@@ -392,6 +412,25 @@ Use `redhat_cleanup.yaml` to:
 
 ---
 
+## 🎯 Best Practices for NSX-T Environments
+
+1. **Use NSX-T Security Tags** for dynamic grouping:
+   - `Environment`: dev/staging/prod
+   - `OS`: ubuntu/rhel/windows
+   - `CloudLens`: enabled/disabled
+
+2. **Leverage Tower Workflows** for:
+   - Pre-deployment validation
+   - Staged rollouts by environment
+   - Post-deployment health checks
+
+3. **Monitor via Tower Dashboard**:
+   - Job success rates
+   - Deployment times
+   - Failed host patterns
+
+---
+
 ## Contact
 
 Please raise issues or PRs to suggest improvements or fixes.
@@ -402,14 +441,13 @@ Please raise issues or PRs to suggest improvements or fixes.
 
 You should install pywinrm on your Host because:
 
-🔧 **Ansible Always Runs from the Control Node (Your PC)**
+🔧 **Ansible Always Runs from the Control Node (Your PC/Tower)**
 Ansible is agentless — it connects remotely to Windows (via WinRM) or Linux (via SSH).
 
-So, all required Ansible Python packages (including pywinrm) must be installed on the machine where you're running Ansible — which is your PC.
+So, all required Ansible Python packages (including pywinrm) must be installed on the machine where you're running Ansible — which is your PC or Ansible Tower server.
 
 The Windows VMs just need to have WinRM enabled and reachable.
 
 ```bash
 export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES
-
-
+```
