@@ -1,6 +1,6 @@
 ---
 - name: Deploy CloudLens Agent to Windows VMs
-  hosts: windows_prod_vms
+  hosts: windows_vms
   
   tasks:
     - name: Ensure C:\temp directory exists
