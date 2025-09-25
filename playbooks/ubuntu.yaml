@@ -38,7 +38,7 @@
           ansible.builtin.apt:
             update_cache: yes
           when: docker_installed.rc != 0
-          become: yes
+          # become: yes
 
         - name: Install prerequisites for Docker
           ansible.builtin.apt:
@@ -59,7 +59,7 @@
           register: gpg_key_added
           changed_when: gpg_key_added.rc == 0
           when: docker_installed.rc != 0
-          become: yes
+          # become: yes
         
        
 
@@ -72,14 +72,14 @@
             name: python3-apt
             state: present
             update_cache: yes
-          become: yes
+          # become: yes
       
         - name: Add Docker repository
           ansible.builtin.apt_repository:
             repo: "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu {{ ubuntu_codename.stdout }} stable"
             state: present
           when: docker_installed.rc != 0
-          become: yes
+          # become: yes
           
         - name: Install Docker packages
           ansible.builtin.apt:
