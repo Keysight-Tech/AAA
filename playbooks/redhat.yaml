@@ -1,5 +1,5 @@
 - name: Deploy CloudLens Agent to Red Hat VMs with Podman
-  hosts: rhel6_64Guest
+  hosts: cmdvsrkscmap101.aceclublab.com
   become: yes
 
   tasks:
