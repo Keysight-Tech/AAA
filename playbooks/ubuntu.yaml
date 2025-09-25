@@ -38,7 +38,7 @@
           ansible.builtin.apt:
             update_cache: yes
           when: docker_installed.rc != 0
-          # become: yes
+        
 
         - name: Install prerequisites for Docker
           ansible.builtin.apt:
@@ -59,27 +59,35 @@
           register: gpg_key_added
           changed_when: gpg_key_added.rc == 0
           when: docker_installed.rc != 0
-          # become: yes
+         
         
        
 
         - name: Debug GPG key installation status
           debug:
             msg: "GPG key installation was {{ 'successful' if gpg_key_added.rc == 0 else 'unsuccessful' }}."
-  
+
+        - name: Ensure dependencies for apt_repository are present
+        ansible.builtin.apt:
+          name:
+            - software-properties-common
+            - python3-apt
+          state: present
+          update_cache: yes
+
         - name: Ensure python3-apt is installed (required for apt_repository)
           ansible.builtin.apt:
             name: python3-apt
             state: present
             update_cache: yes
-          # become: yes
+          
       
         - name: Add Docker repository
           ansible.builtin.apt_repository:
             repo: "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu {{ ubuntu_codename.stdout }} stable"
             state: present
           when: docker_installed.rc != 0
-          # become: yes
+         
           
         - name: Install Docker packages
           ansible.builtin.apt:
