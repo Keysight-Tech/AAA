@@ -1,6 +1,6 @@
 ---
 - name: Deploy CloudLens Agent to Ubuntu VMs
-  hosts: ubuntu64Guest
+  hosts: Ansible_Node_423d4aeb-3046-b0e2-87cd-3b3bfc73926b
   become: yes
 
   tasks:
