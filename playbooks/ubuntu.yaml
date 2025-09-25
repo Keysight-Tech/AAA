@@ -2,25 +2,9 @@
 - name: Deploy CloudLens Agent to Ubuntu VMs
   hosts: Tool_VM_423d16c0-a039-4459-064e-90b28877d3ab
   become: yes
+ 
 
   tasks:
-    - name: Wait for apt lock to be released
-      shell: |
-        # Wait for apt-get processes to finish
-        while fuser /var/lib/apt/lists/lock >/dev/null 2>&1; do
-          echo "Waiting for apt lists lock to be released..."
-          sleep 5
-        done
-        while fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do
-          echo "Waiting for dpkg frontend lock to be released..."
-          sleep 5
-        done
-        while fuser /var/lib/dpkg/lock >/dev/null 2>&1; do
-          echo "Waiting for dpkg lock to be released..."
-          sleep 5
-        done
-      become: yes
-
     - name: Gather facts about the system
       ansible.builtin.gather_facts:
 
@@ -53,12 +37,8 @@
         - name: Update the package index
           ansible.builtin.apt:
             update_cache: yes
-            cache_valid_time: 3600
-          register: apt_update
-          retries: 5
-          delay: 10
-          until: apt_update is succeeded
           when: docker_installed.rc != 0
+          become: yes
 
         - name: Install prerequisites for Docker
           ansible.builtin.apt:
@@ -69,10 +49,6 @@
               - software-properties-common
               - gnupg
             state: present
-          register: install_prereqs
-          retries: 3
-          delay: 5
-          until: install_prereqs is succeeded
           when: docker_installed.rc != 0
 
         - name: Add Docker's official GPG key
@@ -83,6 +59,9 @@
           register: gpg_key_added
           changed_when: gpg_key_added.rc == 0
           when: docker_installed.rc != 0
+          become: yes
+        
+       
 
         - name: Debug GPG key installation status
           debug:
@@ -94,15 +73,6 @@
             state: present
           when: docker_installed.rc != 0
           
-        - name: Update package cache after adding Docker repository
-          ansible.builtin.apt:
-            update_cache: yes
-          register: apt_update_docker
-          retries: 3
-          delay: 5
-          until: apt_update_docker is succeeded
-          when: docker_installed.rc != 0
-          
         - name: Install Docker packages
           ansible.builtin.apt:
             name:
@@ -111,10 +81,6 @@
               - containerd.io
             state: latest
             update_cache: yes
-          register: install_docker
-          retries: 3
-          delay: 10
-          until: install_docker is succeeded
           when: docker_installed.rc != 0
 
         - name: Ensure Docker service is enabled and started
@@ -209,6 +175,7 @@
         --custom_tags "{{ custom_tags }}" --ssl_verify {% if registry_type == 'secure' %}yes{% else %}no{% endif %}
       when: docker_status.status.ActiveState == "active"
 
+
     - name: Verify CloudLens Agent container is running
       ansible.builtin.shell: >
         docker ps -f name={{ cloudlens_agent_container_name }} --format '{{"{{"}}.Names{{"}}"}}'
@@ -218,3 +185,4 @@
         docker_agent_status.rc != 0 or
         docker_agent_status.stdout is not defined or
         docker_agent_status.stdout | trim == ""
+
