@@ -21,7 +21,7 @@ hostnames:
 # # Group by labels 
 groups:
   ubuntu_prod_vms: "'ubuntu' in labels.os and labels.env == 'prod'"
-  rhel6_64Guest: "'rhel' in labels.os and labels.env == 'prod'"  
+  redhat_prod_vms: "'rhel' in labels.os and labels.env == 'prod'"  
   windows_prod_vms: "'windows' in labels.os and labels.env == 'prod'"
   
 
