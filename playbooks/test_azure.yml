@@ -1,0 +1,26 @@
+---
+- name: Test Azure Access by creating a Resource Group + VNet
+  hosts: localhost
+  connection: local
+  collections:
+    - azure.azcollection
+
+  tasks:
+    - name: Create a Resource Group
+      azure_rm_resourcegroup:
+        name: awx-test-rg
+        location: eastus
+
+    - name: Create a Virtual Network
+      azure_rm_virtualnetwork:
+        resource_group: awx-test-rg
+        name: awx-test-vnet
+        address_prefixes: "10.0.0.0/16"
+        location: eastus
+
+    - name: Create a Subnet
+      azure_rm_subnet:
+        resource_group: awx-test-rg
+        name: awx-test-subnet
+        address_prefix: "10.0.1.0/24"
+        virtual_network: awx-test-vnet
