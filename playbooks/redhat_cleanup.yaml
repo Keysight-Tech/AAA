@@ -1,5 +1,5 @@
 - name: Undo CloudLens Agent Deployment from Red Hat VMs with Podman
-  hosts: redhat_prod_vms
+  hosts: rhel6_64Guest
   become: yes
 
   tasks:
