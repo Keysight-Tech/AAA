@@ -66,12 +66,20 @@
         - name: Debug GPG key installation status
           debug:
             msg: "GPG key installation was {{ 'successful' if gpg_key_added.rc == 0 else 'unsuccessful' }}."
-
+  
+        - name: Ensure python3-apt is installed (required for apt_repository)
+          ansible.builtin.apt:
+            name: python3-apt
+            state: present
+            update_cache: yes
+          become: yes
+      
         - name: Add Docker repository
           ansible.builtin.apt_repository:
             repo: "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu {{ ubuntu_codename.stdout }} stable"
             state: present
           when: docker_installed.rc != 0
+          become: yes
           
         - name: Install Docker packages
           ansible.builtin.apt:
