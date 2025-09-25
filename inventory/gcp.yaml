@@ -1,28 +1,28 @@
-plugin: gcp_compute
-projects:
-  - poc-project-463913
-auth_kind: serviceaccount
-service_account_file: ~/gcp-key.json
-zones:
-  - us-east1-b
+# plugin: gcp_compute
+# projects:
+#   - poc-project-463913
+# auth_kind: serviceaccount
+# service_account_file: ~/gcp-key.json
+# zones:
+#   - us-east1-b
 
 
-# Only include running instances
-filters:
-  - status = RUNNING
+# # Only include running instances
+# filters:
+#   - status = RUNNING
 
-keyed_groups:
-  - prefix: label
-    key: labels.env
+# keyed_groups:
+#   - prefix: label
+#     key: labels.env
 
-hostnames:
-  - public_ip
+# hostnames:
+#   - public_ip
 
 # # Group by labels 
-groups:
-  ubuntu_prod_vms: "'ubuntu' in labels.os and labels.env == 'prod'"
-  redhat_prod_vms: "'rhel' in labels.os and labels.env == 'prod'"  
-  windows_prod_vms: "'windows' in labels.os and labels.env == 'prod'"
+# groups:
+#   ubuntu_prod_vms: "'ubuntu' in labels.os and labels.env == 'prod'"
+#   redhat_prod_vms: "'rhel' in labels.os and labels.env == 'prod'"  
+#   windows_prod_vms: "'windows' in labels.os and labels.env == 'prod'"
   
 
 
