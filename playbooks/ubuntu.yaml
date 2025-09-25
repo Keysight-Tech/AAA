@@ -1,6 +1,6 @@
 ---
 - name: Deploy CloudLens Agent to Ubuntu VMs
-  hosts: Tool_VM_423d16c0-a039-4459-064e-90b28877d3ab
+  hosts: Ansible_Node_423d4aeb-3046-b0e2-87cd-3b3bfc73926b
   become: yes
  
 
@@ -64,15 +64,6 @@
         - name: Debug GPG key installation status
           debug:
             msg: "GPG key installation was {{ 'successful' if gpg_key_added.rc == 0 else 'unsuccessful' }}."
-
-        - name: Ensure dependencies for apt_repository are present
-          ansible.builtin.apt:
-            name:
-              - software-properties-common
-              - python3-apt
-            state: present
-            update_cache: yes
-        
       
         - name: Add Docker repository
           ansible.builtin.apt_repository:
