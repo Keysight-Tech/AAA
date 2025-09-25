@@ -66,13 +66,13 @@
             msg: "GPG key installation was {{ 'successful' if gpg_key_added.rc == 0 else 'unsuccessful' }}."
 
         - name: Ensure dependencies for apt_repository are present
-            ansible.builtin.apt:
-              name:
-                - software-properties-common
-                - python3-apt
-              state: present
-              update_cache: yes
-          
+          ansible.builtin.apt:
+            name:
+              - software-properties-common
+              - python3-apt
+            state: present
+            update_cache: yes
+        
       
         - name: Add Docker repository
           ansible.builtin.apt_repository:
