@@ -58,7 +58,7 @@
           register: gpg_key_added
           changed_when: gpg_key_added.rc == 0
           when: docker_installed.rc != 0
-          become: yes
+       
 
         - name: Debug GPG key installation status
           debug:
