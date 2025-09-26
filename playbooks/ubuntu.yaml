@@ -1,6 +1,6 @@
 ---
 - name: Deploy CloudLens Agent to Ubuntu VMs
-  hosts: ubuntu_prod_vms
+  hosts: 35.237.140.31
   become: yes
 
   tasks:
