@@ -1,7 +1,0 @@
----
-- hosts: localhost
-  gather_facts: no
-  tasks:
-    - name: Show VCENTER_HOSTNAME
-      debug:
-        msg: "{{ lookup('env', 'VCENTER_HOSTNAME') }}"
