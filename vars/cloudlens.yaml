@@ -1,0 +1,20 @@
+# vars/cloudlens.yml
+cloudlens_manager_ip_or_FQDN: "10.38.3.132"
+project_key: "b1291b747b99477e88c10326c865c5c4"
+cloudlens_agent_container_name: "cloudlens-agent"
+custom_tags: "env=dev,owner=brine"
+
+registry_type: "insecure"
+local_ca_path: "/dev/null"
+ca_cert_dir: "/etc/ssl/certs"
+
+log_max_size: "50m"
+log_max_file: "5"
+
+podman_command: podman
+redhat_ca_cert_dir: "/etc/pki/ca-trust/source/anchors"
+
+local_installer_path: "{{ playbook_dir }}/../files/cloudlens-win-sensor-6.12.0.316.exe"
+cloudlens_installer_filename: "cloudlens-win-sensor-6.12.0.316.exe"
+ssl_verify: "no"
+auto_update: "yes"
