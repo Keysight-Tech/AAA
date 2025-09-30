@@ -1,6 +1,8 @@
 - name: Undo CloudLens Agent Deployment from Red Hat VMs with Podman
   hosts: rhel6_64Guest
   become: yes
+  vars_files:
+    - ../vars/cloudlens.yaml
 
   tasks:
     - name: Gather facts about the system
