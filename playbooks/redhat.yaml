@@ -1,5 +1,5 @@
 - name: Deploy CloudLens Agent to Red Hat VMs with Podman
-  hosts: aaa_vms
+  hosts: RHEL
   become: yes
   vars_files:
     - ../vars/cloudlens.yaml

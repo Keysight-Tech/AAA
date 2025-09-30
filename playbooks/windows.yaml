@@ -1,6 +1,6 @@
 ---
 - name: Deploy CloudLens Agent to Windows VMs
-  hosts: aaa_vms
+  hosts: Windows DEV
   become: no
   vars_files:
     - ../vars/cloudlens.yaml
