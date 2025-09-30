@@ -1,6 +1,7 @@
 ---
 - name: Deploy CloudLens Agent to Windows VMs
   hosts: windows_prod_vms
+  become: no
   
   tasks:
 
