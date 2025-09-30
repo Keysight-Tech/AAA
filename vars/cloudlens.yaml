@@ -1,8 +1,8 @@
 # vars/cloudlens.yml
-cloudlens_manager_ip_or_FQDN: "10.38.3.132"
-project_key: "b1291b747b99477e88c10326c865c5c4"
+cloudlens_manager_ip_or_FQDN: "10.115.16.41"
+project_key: "c34a9b8a76a14065b8f1ee692f5bf444"
 cloudlens_agent_container_name: "cloudlens-agent"
-custom_tags: "env=dev,owner=brine"
+custom_tags: "env=dev,owner=AAA"
 
 registry_type: "insecure"
 local_ca_path: "/dev/null"
