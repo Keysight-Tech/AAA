@@ -30,13 +30,94 @@
       debug:
         msg: "Podman is {{ 'installed' if podman_installed.rc == 0 else 'not installed' }}."
 
-    - name: Enable RHEL 8/9 container-tools module
-      ansible.builtin.command: dnf module enable -y container-tools:rhel8
+    - name: Check available repositories
+      ansible.builtin.shell: |
+        if command -v subscription-manager &> /dev/null; then
+          subscription-manager repos --list-enabled
+        elif command -v dnf &> /dev/null; then
+          dnf repolist
+        else
+          yum repolist
+        fi
+      register: repo_check
+      changed_when: false
+      when: podman_installed.rc != 0
+
+    - name: Debug available repositories
+      debug:
+        msg: "{{ repo_check.stdout_lines }}"
+      when: podman_installed.rc != 0
+
+    - name: Enable required repositories with subscription-manager (RHEL 8+)
+      ansible.builtin.shell: |
+        subscription-manager repos --enable=rhel-{{ ansible_distribution_major_version }}-for-x86_64-baseos-rpms
+        subscription-manager repos --enable=rhel-{{ ansible_distribution_major_version }}-for-x86_64-appstream-rpms
       when:
         - podman_installed.rc != 0
         - ansible_os_family == 'RedHat'
         - ansible_distribution_major_version | int >= 8
-      ignore_errors: yes
+      register: repo_enable_result
+      failed_when: false
+
+    - name: Enable required repositories with subscription-manager (RHEL 7)
+      ansible.builtin.shell: |
+        subscription-manager repos --enable=rhel-7-server-rpms
+        subscription-manager repos --enable=rhel-7-server-extras-rpms
+      when:
+        - podman_installed.rc != 0
+        - ansible_os_family == 'RedHat'
+        - ansible_distribution_major_version | int == 7
+      register: repo_enable_result
+      failed_when: false
+
+    - name: Enable container-tools module (RHEL 8+)
+      ansible.builtin.shell: dnf module enable -y container-tools
+      when:
+        - podman_installed.rc != 0
+        - ansible_os_family == 'RedHat'
+        - ansible_distribution_major_version | int >= 8
+      register: module_enable_result
+      failed_when: false
+
+    - name: Check if podman is now available
+      ansible.builtin.shell: |
+        if command -v dnf &> /dev/null; then
+          dnf list available podman
+        else
+          yum list available podman
+        fi
+      register: podman_available
+      when: podman_installed.rc != 0
+      failed_when: false
+      changed_when: false
+
+    - name: Debug podman availability
+      debug:
+        msg: "{{ podman_available.stdout_lines }}"
+      when: 
+        - podman_installed.rc != 0
+        - podman_available is defined
+
+    - name: Fail if podman is not available after repo setup
+      fail:
+        msg: |
+          Podman package is not available in enabled repositories.
+          Please manually enable the required repositories:
+          
+          For RHEL 8+:
+            subscription-manager repos --enable=rhel-{{ ansible_distribution_major_version }}-for-x86_64-baseos-rpms
+            subscription-manager repos --enable=rhel-{{ ansible_distribution_major_version }}-for-x86_64-appstream-rpms
+          
+          For RHEL 7:
+            subscription-manager repos --enable=rhel-7-server-rpms
+            subscription-manager repos --enable=rhel-7-server-extras-rpms
+          
+          Current repositories:
+          {{ repo_check.stdout }}
+      when:
+        - podman_installed.rc != 0
+        - podman_available is defined
+        - podman_available.rc != 0
 
     - name: Install Podman on RHEL 8+
       ansible.builtin.dnf:
@@ -44,44 +125,12 @@
           - podman
           - container-selinux
         state: present
-        enablerepo: "rhel-{{ ansible_distribution_major_version }}-for-x86_64-appstream-rpms"
-      when:
-        - podman_installed.rc != 0
-        - ansible_os_family == 'RedHat'
-        - ansible_distribution_major_version | int >= 8
-      ignore_errors: yes
-
-    - name: Install Podman on RHEL 8+ (fallback without enablerepo)
-      ansible.builtin.dnf:
-        name:
-          - podman
-          - container-selinux
-        state: present
       when:
         - podman_installed.rc != 0
         - ansible_os_family == 'RedHat'
         - ansible_distribution_major_version | int >= 8
 
-    - name: Install EPEL repository for RHEL 7
-      ansible.builtin.yum:
-        name: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_distribution_major_version }}.noarch.rpm"
-        state: present
-        disable_gpg_check: yes
-      when:
-        - podman_installed.rc != 0
-        - ansible_os_family == 'RedHat'
-        - ansible_distribution_major_version | int == 7
-      ignore_errors: yes
-
-    - name: Enable extras repository for RHEL 7
-      ansible.builtin.command: yum-config-manager --enable rhel-7-server-extras-rpms
-      when:
-        - podman_installed.rc != 0
-        - ansible_os_family == 'RedHat'
-        - ansible_distribution_major_version | int == 7
-      ignore_errors: yes
-
-    - name: Install Podman and container-tools on RHEL 7
+    - name: Install Podman on RHEL 7
       ansible.builtin.yum:
         name:
           - podman
