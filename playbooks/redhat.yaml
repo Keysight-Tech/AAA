@@ -5,33 +5,33 @@
     - ../vars/cloudlens.yaml
 
   tasks:
-    - name: Gather facts about the system
+    - name: Gather facts
       setup:
 
-    - name: Ensure /var/log/cloudlens directory exists
-      ansible.builtin.file:
+    - name: Ensure CloudLens log directory exists
+      file:
         path: /var/log/cloudlens
         state: directory
         mode: '0755'
 
-    - name: Ensure /var/tmp/cloudtap directory exists
-      ansible.builtin.file:
+    - name: Ensure CloudTap tmp directory exists
+      file:
         path: /var/tmp/cloudtap
         state: directory
         mode: '0755'
 
     - name: Check if Podman is installed
-      ansible.builtin.command: command -v podman
+      command: command -v podman
       register: podman_installed
       failed_when: false
       changed_when: false
 
-    - name: Debug Podman installation status
+    - name: Print Podman installation status
       debug:
         msg: "Podman is {{ 'installed' if podman_installed.rc == 0 else 'not installed' }}."
 
-    - name: Check available repositories
-      ansible.builtin.shell: |
+    - name: Show current enabled repos
+      shell: |
         if command -v subscription-manager &> /dev/null; then
           subscription-manager repos --list-enabled
         elif command -v dnf &> /dev/null; then
@@ -39,159 +39,119 @@
         else
           yum repolist
         fi
+      when: podman_installed.rc != 0
       register: repo_check
       changed_when: false
-      when: podman_installed.rc != 0
 
-    - name: Debug available repositories
+    - name: Debug enabled repos
       debug:
         msg: "{{ repo_check.stdout_lines }}"
       when: podman_installed.rc != 0
 
-    - name: Enable required repositories with subscription-manager (RHEL 8+)
-      ansible.builtin.shell: |
+    - name: Enable official Red Hat repos (RHEL 8+)
+      shell: |
         subscription-manager repos --enable=rhel-{{ ansible_distribution_major_version }}-for-x86_64-baseos-rpms
         subscription-manager repos --enable=rhel-{{ ansible_distribution_major_version }}-for-x86_64-appstream-rpms
       when:
         - podman_installed.rc != 0
-        - ansible_os_family == 'RedHat'
         - ansible_distribution_major_version | int >= 8
-      register: repo_enable_result
+        - ansible_os_family == 'RedHat'
       failed_when: false
 
-    - name: Enable required repositories with subscription-manager (RHEL 7)
-      ansible.builtin.shell: |
+    - name: Enable official Red Hat repos (RHEL 7)
+      shell: |
         subscription-manager repos --enable=rhel-7-server-rpms
         subscription-manager repos --enable=rhel-7-server-extras-rpms
       when:
         - podman_installed.rc != 0
-        - ansible_os_family == 'RedHat'
         - ansible_distribution_major_version | int == 7
-      register: repo_enable_result
+        - ansible_os_family == 'RedHat'
       failed_when: false
 
-    - name: Check if repositories are available after subscription-manager
-      ansible.builtin.shell: |
-        if command -v dnf &> /dev/null; then
-          dnf repolist | wc -l
-        else
-          yum repolist | wc -l
-        fi
+    - name: Count available repos
+      shell: "{{ 'dnf' if ansible_distribution_major_version|int >= 8 else 'yum' }} repolist | wc -l"
       register: repo_count
       changed_when: false
       when: podman_installed.rc != 0
 
-    - name: Configure CentOS Stream 8 mirror repositories (RHEL 8 - fallback)
-      ansible.builtin.copy:
+    - name: Configure fallback CentOS Stream 8 repos
+      copy:
         dest: /etc/yum.repos.d/centos8-stream.repo
+        mode: '0644'
         content: |
           [baseos]
           name=CentOS Stream 8 - BaseOS
           baseurl=http://mirror.stream.centos.org/8-stream/BaseOS/x86_64/os/
           gpgcheck=0
           enabled=1
-          
+
           [appstream]
           name=CentOS Stream 8 - AppStream
           baseurl=http://mirror.stream.centos.org/8-stream/AppStream/x86_64/os/
           gpgcheck=0
           enabled=1
-        mode: '0644'
       when:
-        - podman_installed.rc != 0
-        - ansible_os_family == 'RedHat'
         - ansible_distribution_major_version | int == 8
         - repo_count.stdout | int < 5
 
-    - name: Configure CentOS Stream 9 mirror repositories (RHEL 9 - fallback)
-      ansible.builtin.copy:
+    - name: Configure fallback CentOS Stream 9 repos
+      copy:
         dest: /etc/yum.repos.d/centos9-stream.repo
+        mode: '0644'
         content: |
           [baseos]
           name=CentOS Stream 9 - BaseOS
           baseurl=http://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os/
           gpgcheck=0
           enabled=1
-          
+
           [appstream]
           name=CentOS Stream 9 - AppStream
           baseurl=http://mirror.stream.centos.org/9-stream/AppStream/x86_64/os/
           gpgcheck=0
           enabled=1
-        mode: '0644'
       when:
-        - podman_installed.rc != 0
-        - ansible_os_family == 'RedHat'
         - ansible_distribution_major_version | int == 9
         - repo_count.stdout | int < 5
 
-    - name: Configure CentOS 7 mirror repositories (RHEL 7 - fallback)
-      ansible.builtin.copy:
+    - name: Configure fallback CentOS 7 repos
+      copy:
         dest: /etc/yum.repos.d/centos7.repo
+        mode: '0644'
         content: |
           [base]
           name=CentOS 7 - Base
           baseurl=http://vault.centos.org/7.9.2009/os/x86_64/
           gpgcheck=0
           enabled=1
-          
+
           [extras]
           name=CentOS 7 - Extras
           baseurl=http://vault.centos.org/7.9.2009/extras/x86_64/
           gpgcheck=0
           enabled=1
-        mode: '0644'
       when:
-        - podman_installed.rc != 0
-        - ansible_os_family == 'RedHat'
         - ansible_distribution_major_version | int == 7
         - repo_count.stdout | int < 5
 
     - name: Clean package manager cache
-      ansible.builtin.command: "{{ 'dnf' if ansible_distribution_major_version|int >= 8 else 'yum' }} clean all"
-      when: 
-        - podman_installed.rc != 0
-        - repo_count.stdout | int < 5
-      changed_when: true
+      command: "{{ 'dnf clean all' if ansible_distribution_major_version | int >= 8 else 'yum clean all' }}"
+      when: repo_count.stdout | int < 5
 
-    - name: Update package manager cache
-      ansible.builtin.command: "{{ 'dnf' if ansible_distribution_major_version|int >= 8 else 'yum' }} makecache"
-      when:
-        - podman_installed.rc != 0
-        - repo_count.stdout | int < 5
-      changed_when: true
+    - name: Refresh package manager cache
+      command: "{{ 'dnf makecache' if ansible_distribution_major_version | int >= 8 else 'yum makecache' }}"
+      when: repo_count.stdout | int < 5
       ignore_errors: yes
 
     - name: Enable container-tools module (RHEL 8+)
-      ansible.builtin.shell: dnf module enable -y container-tools
+      shell: dnf module enable -y container-tools
       when:
-        - podman_installed.rc != 0
-        - ansible_os_family == 'RedHat'
         - ansible_distribution_major_version | int >= 8
-      register: module_enable_result
-      failed_when: false
-
-    - name: Check if podman is now available
-      ansible.builtin.shell: |
-        if command -v dnf &> /dev/null; then
-          dnf list available podman
-        else
-          yum list available podman
-        fi
-      register: podman_available
-      when: podman_installed.rc != 0
-      failed_when: false
-      changed_when: false
-
-    - name: Debug podman availability
-      debug:
-        msg: "{{ podman_available.stdout_lines }}"
-      when: 
         - podman_installed.rc != 0
-        - podman_available is defined
+      failed_when: false
 
     - name: Install Podman on RHEL 8+
-      ansible.builtin.dnf:
+      dnf:
         name:
           - podman
           - container-selinux
@@ -199,22 +159,19 @@
         disable_gpg_check: yes
       when:
         - podman_installed.rc != 0
-        - ansible_os_family == 'RedHat'
         - ansible_distribution_major_version | int >= 8
 
     - name: Install Podman on RHEL 7
-      ansible.builtin.yum:
-        name:
-          - podman
+      yum:
+        name: podman
         state: present
         disable_gpg_check: yes
       when:
         - podman_installed.rc != 0
-        - ansible_os_family == 'RedHat'
         - ansible_distribution_major_version | int == 7
 
     - name: Get Podman version
-      ansible.builtin.command: podman --version
+      command: podman --version
       register: podman_version
       changed_when: false
 
@@ -222,7 +179,7 @@
       debug:
         msg: "{{ podman_version.stdout }}"
 
-    - name: Configure Podman daemon for insecure registry (all platforms)
+    - name: Add insecure registry config for Podman
       copy:
         dest: /etc/containers/registries.conf.d/cloudlens.conf
         content: |
@@ -232,36 +189,35 @@
         mode: '0644'
       when: registry_type == "insecure"
 
-    - name: Reload container registries configuration (Podman)
-      ansible.builtin.command: "systemctl restart podman.socket"
-      ignore_errors: yes
+    - name: Restart Podman socket
+      command: systemctl restart podman.socket
       when: registry_type == "insecure"
+      ignore_errors: yes
 
-    - name: Transfer CA certificate from local to VM (for secure registries)
+    - name: Transfer CA cert for secure registries
       copy:
         src: "{{ local_ca_path }}"
         dest: "{{ ca_cert_dir }}/cloudlenscerts.crt"
         mode: '0644'
       when: registry_type == "secure"
 
-    - name: Update CA certificates on Red Hat (for secure registries)
-      ansible.builtin.command: update-ca-trust extract
-      become: yes
+    - name: Update system trust store
+      command: update-ca-trust extract
       when: registry_type == "secure"
 
-    - name: Remove existing CloudLens agent container if exists
-      ansible.builtin.shell: "{{ podman_command }} rm -f {{ cloudlens_agent_container_name }}"
+    - name: Remove existing CloudLens container if it exists
+      shell: podman rm -f {{ cloudlens_agent_container_name }}
       ignore_errors: yes
 
-    - name: Pull CloudLens sensor image from registry
-      ansible.builtin.shell: >
-        {{ podman_command }} pull
+    - name: Pull CloudLens sensor image
+      shell: >
+        podman pull
         {% if registry_type == 'insecure' %}--tls-verify=false{% endif %}
         {{ cloudlens_manager_ip_or_FQDN }}/sensor:latest
 
-    - name: Run CloudLens Agent container with Podman
-      ansible.builtin.shell: |
-        {{ podman_command }} run -d \
+    - name: Run CloudLens agent container
+      shell: |
+        podman run -d \
         -v /lib/modules:/lib/modules \
         -v /var/log/cloudlens:/var/log/cloudlens \
         -v /var/tmp/cloudtap:/var/cloudtap \
@@ -278,16 +234,15 @@
         --loglevel debug \
         --project_key "{{ project_key }}" \
         --server "{{ cloudlens_manager_ip_or_FQDN }}" \
-        --custom_tags "{{ custom_tags }}" \
+        --custom_tags "{{ target_group | default('default') }}" \
         --ssl_verify {% if registry_type == 'secure' %}yes{% else %}no{% endif %}
 
-    - name: Check if CloudLens agent container is running
-      ansible.builtin.shell: >
-        podman inspect -f '{{"{{"}}.State.Status{{"}}"}}' {{ cloudlens_agent_container_name }}
+    - name: Check if CloudLens agent is running
+      shell: podman inspect -f '{{"{{"}}.State.Status{{"}}"}}' {{ cloudlens_agent_container_name }}
       register: agent_status
       changed_when: false
       failed_when: false
 
-    - name: Print CloudLens agent status
+    - name: Show CloudLens container status
       debug:
         msg: "CloudLens agent container is {{ agent_status.stdout | default('NOT FOUND') }}"
