@@ -1,6 +1,6 @@
 ---
 - name: Deploy CloudLens Agent to Ubuntu VMs
-  hosts: aaa_vms
+  hosts: "{{ target_group }}"
   become: yes
   vars_files:
     - ../vars/cloudlens.yaml

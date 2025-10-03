@@ -1,6 +1,6 @@
 ---
 - name: Uninstall CloudLens Agent from Windows VMs
-  hosts: Windows DEV
+  hosts: "{{ target_group }}"
   become: no
   vars_files:
     - ../vars/cloudlens.yaml
