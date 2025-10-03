@@ -30,40 +30,76 @@
       debug:
         msg: "Podman is {{ 'installed' if podman_installed.rc == 0 else 'not installed' }}."
 
-    - name: Install Podman on RHEL 
+    - name: Enable RHEL 8/9 container-tools module
+      ansible.builtin.command: dnf module enable -y container-tools:rhel8
+      when:
+        - podman_installed.rc != 0
+        - ansible_os_family == 'RedHat'
+        - ansible_distribution_major_version | int >= 8
+      ignore_errors: yes
+
+    - name: Install Podman on RHEL 8+
       ansible.builtin.dnf:
         name:
           - podman
+          - container-selinux
+        state: present
+        enablerepo: "rhel-{{ ansible_distribution_major_version }}-for-x86_64-appstream-rpms"
+      when:
+        - podman_installed.rc != 0
+        - ansible_os_family == 'RedHat'
+        - ansible_distribution_major_version | int >= 8
+      ignore_errors: yes
+
+    - name: Install Podman on RHEL 8+ (fallback without enablerepo)
+      ansible.builtin.dnf:
+        name:
+          - podman
+          - container-selinux
         state: present
       when:
         - podman_installed.rc != 0
         - ansible_os_family == 'RedHat'
         - ansible_distribution_major_version | int >= 8
 
-    - name: Install Podman and container-tools on RHEL 
+    - name: Install EPEL repository for RHEL 7
+      ansible.builtin.yum:
+        name: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_distribution_major_version }}.noarch.rpm"
+        state: present
+        disable_gpg_check: yes
+      when:
+        - podman_installed.rc != 0
+        - ansible_os_family == 'RedHat'
+        - ansible_distribution_major_version | int == 7
+      ignore_errors: yes
+
+    - name: Enable extras repository for RHEL 7
+      ansible.builtin.command: yum-config-manager --enable rhel-7-server-extras-rpms
+      when:
+        - podman_installed.rc != 0
+        - ansible_os_family == 'RedHat'
+        - ansible_distribution_major_version | int == 7
+      ignore_errors: yes
+
+    - name: Install Podman and container-tools on RHEL 7
       ansible.builtin.yum:
         name:
           - podman
-          - container-tools
+          - container-selinux
         state: present
       when:
         - podman_installed.rc != 0
         - ansible_os_family == 'RedHat'
-        - ansible_distribution_major_version | int < 8
+        - ansible_distribution_major_version | int == 7
 
     - name: Get Podman version
       ansible.builtin.command: podman --version
       register: podman_version
       changed_when: false
-      when: podman_installed.rc == 0
 
-
-    - name: Ensure Podman service is enabled (no daemon, so just verify)
-      ansible.builtin.systemd:
-        name: podman
-        enabled: false
-        state: stopped
-      when: podman_installed.rc != 0
+    - name: Debug Podman version
+      debug:
+        msg: "{{ podman_version.stdout }}"
 
     - name: Configure Podman daemon for insecure registry (all platforms)
       copy:
@@ -92,11 +128,11 @@
       become: yes
       when: registry_type == "secure"
 
-    - name: Remove existing CloudLens agent container if exists 
+    - name: Remove existing CloudLens agent container if exists
       ansible.builtin.shell: "{{ podman_command }} rm -f {{ cloudlens_agent_container_name }}"
       ignore_errors: yes
 
-    - name: Pull CloudLens sensor image from registry 
+    - name: Pull CloudLens sensor image from registry
       ansible.builtin.shell: >
         {{ podman_command }} pull
         {% if registry_type == 'insecure' %}--tls-verify=false{% endif %}
@@ -123,7 +159,6 @@
         --server "{{ cloudlens_manager_ip_or_FQDN }}" \
         --custom_tags "{{ custom_tags }}" \
         --ssl_verify {% if registry_type == 'secure' %}yes{% else %}no{% endif %}
-      when: podman_installed.rc == 0
 
     - name: Check if CloudLens agent container is running
       ansible.builtin.shell: >
@@ -134,4 +169,4 @@
 
     - name: Print CloudLens agent status
       debug:
-            msg: "CloudLens agent container is {{ agent_status.stdout | default('NOT FOUND') }}"
+        msg: "CloudLens agent container is {{ agent_status.stdout | default('NOT FOUND') }}"
