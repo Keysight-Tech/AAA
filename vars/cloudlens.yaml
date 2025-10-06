@@ -12,7 +12,7 @@ log_max_file: "5"
 podman_command: podman
 redhat_ca_cert_dir: "/etc/pki/ca-trust/source/anchors"
 
-local_installer_path: "{{ playbook_dir }}/../files/cloudlens-win-sensor-6.12.0.316.exe"
-cloudlens_installer_filename: "cloudlens-win-sensor-6.12.0.316.exe"
+local_installer_path: "{{ playbook_dir }}/../files/cloudlens-win-sensor-6.11.1.302.exe"
+cloudlens_installer_filename: "cloudlens-win-sensor-6.11.1.302.exe"
 ssl_verify: "no"
 auto_update: "yes"
