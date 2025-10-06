@@ -17,11 +17,21 @@
       register: cloudlens_check
       changed_when: false
 
-    - name: Stop CloudLens service
-      win_service:
-        name: CloudLens
-        state: stopped
-      ignore_errors: true
+    - name: Stop CloudLens service if running
+      win_shell: |
+        $service = Get-Service -Name CloudLens -ErrorAction SilentlyContinue
+        if ($service) {
+          if ($service.Status -eq "Running") {
+            Stop-Service -Name CloudLens -Force
+            Write-Output "Service stopped"
+          } else {
+            Write-Output "Service exists but not running"
+          }
+        } else {
+          Write-Output "Service does not exist"
+        }
+      register: stop_service
+      changed_when: "'Service stopped' in stop_service.stdout"
       when: "'FOUND' in cloudlens_check.stdout"
 
     - name: Uninstall CloudLens Agent
