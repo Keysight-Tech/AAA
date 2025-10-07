@@ -121,12 +121,10 @@
       ignore_errors: true
 
     - name: Remove temp files
-      win_file:
-        path: "{{ item }}"
-        state: absent
-      loop:
-        - "C:\\temp\\{{ cloudlens_installer_filename }}"
-        - C:\temp\cloudlens_ca.crt
+      win_shell: |
+        Remove-Item "C:\temp\cloudlens*.exe" -Force -ErrorAction SilentlyContinue
+        Remove-Item "C:\temp\cloudlens_ca.crt" -Force -ErrorAction SilentlyContinue
+        Write-Output "Temp files removed"
       ignore_errors: true
 
     - name: Final verification
