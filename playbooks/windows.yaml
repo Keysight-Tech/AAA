@@ -1,5 +1,5 @@
 ---
-- name: Deploy CloudLens Agent to Windows VMs (Idempotent)
+- name: Deploy CloudLens Agent to Windows VMs 
   hosts: "{{ target_group }}"
   become: no
   vars_files:
