@@ -1,63 +1,80 @@
 ---
-- name: Uninstall CloudLens Agent from Red Hat VMs with Docker or Podman
+- name: Uninstall CloudLens Agent with Auto-Detection
   hosts: "{{ target_group }}"
   become: yes
   vars_files:
     - ../vars/cloudlens.yaml
 
   vars:
-    # Set these variables to control which container runtime to uninstall from
-    # uninstall_docker: true/false - Uninstall CloudLens from Docker
-    # uninstall_podman: true/false - Uninstall CloudLens from Podman
-    # remove_docker: true/false - Remove Docker itself (optional)
-    # remove_podman: true/false - Remove Podman itself (optional)
-    # purge_docker_data: true/false - Remove Docker data directory (optional, requires remove_docker=true)
+    # AUTO-DETECTION: Playbook automatically detects where CloudLens is installed
+    # No need to specify uninstall_docker or uninstall_podman - it's automatic!
+    # 
+    # Optional variables (only if you want to remove the runtime itself):
+    # remove_docker: true/false - Remove Docker engine completely
+    # remove_podman: true/false - Remove Podman completely
+    # purge_docker_data: true/false - Remove Docker data directory (requires remove_docker=true)
 
   tasks:
     - name: Gather facts about the system
       setup:
 
-    - name: Validate uninstall selection
-      debug:
-        msg: "Uninstalling CloudLens from: {{ 'Docker' if uninstall_docker | default(false) | bool else '' }} {{ 'Podman' if uninstall_podman | default(false) | bool else '' }}"
-
     # ============================================
-    # DOCKER CHECKS AND UNINSTALLATION
+    # AUTO-DETECTION LOGIC
     # ============================================
     - name: Check if Docker is installed
       ansible.builtin.command: command -v docker
-      register: docker_installed
+      register: docker_check
       failed_when: false
       changed_when: false
-      when: uninstall_docker | default(false) | bool
 
-    - name: Display Docker installation status
-      debug:
-        msg: "Docker is {{ 'installed' if docker_installed.rc == 0 else 'not installed' }}"
-      when: uninstall_docker | default(false) | bool
+    - name: Check if Podman is installed
+      ansible.builtin.command: command -v podman
+      register: podman_check
+      failed_when: false
+      changed_when: false
 
-    - name: Check if CloudLens container exists (Docker)
+    - name: Check for CloudLens container in Docker
       ansible.builtin.shell: docker ps -a --filter name={{ cloudlens_agent_container_name }} --format '{{"{{"}}.Names{{"}}"}}'
-      register: docker_container_exists
-      when:
-        - uninstall_docker | default(false) | bool
-        - docker_installed.rc == 0
+      register: docker_has_cloudlens
+      when: docker_check.rc == 0
       changed_when: false
       failed_when: false
 
-    - name: Display container status (Docker)
-      debug:
-        msg: "CloudLens container {{ 'exists' if docker_container_exists.stdout != '' else 'does not exist' }}"
-      when:
-        - uninstall_docker | default(false) | bool
-        - docker_installed.rc == 0
+    - name: Check for CloudLens container in Podman
+      ansible.builtin.shell: podman ps -a --filter name={{ cloudlens_agent_container_name }} --format '{{"{{"}}.Names{{"}}"}}'
+      register: podman_has_cloudlens
+      when: podman_check.rc == 0
+      changed_when: false
+      failed_when: false
 
-    - name: Stop CloudLens Agent container if running (Docker)
-      ansible.builtin.shell: docker stop {{ cloudlens_agent_container_name }}
+    - name: Determine which runtime to uninstall from
+      set_fact:
+        uninstall_from_docker: "{{ docker_check.rc == 0 and docker_has_cloudlens.stdout != '' }}"
+        uninstall_from_podman: "{{ podman_check.rc == 0 and podman_has_cloudlens.stdout != '' }}"
+
+    - name: Display detection results
+      debug:
+        msg:
+          - "=== CloudLens Detection Results ==="
+          - "Docker installed: {{ 'Yes' if docker_check.rc == 0 else 'No' }}"
+          - "Podman installed: {{ 'Yes' if podman_check.rc == 0 else 'No' }}"
+          - "CloudLens in Docker: {{ 'Yes' if uninstall_from_docker else 'No' }}"
+          - "CloudLens in Podman: {{ 'Yes' if uninstall_from_podman else 'No' }}"
+          - "Will uninstall from: {{ 'Docker' if uninstall_from_docker else '' }} {{ 'Podman' if uninstall_from_podman else '' }}"
+
+    - name: Warning if CloudLens not found
+      debug:
+        msg: "WARNING: CloudLens container not found in any runtime. Will clean up files anyway."
       when:
-        - uninstall_docker | default(false) | bool
-        - docker_installed.rc == 0
-        - docker_container_exists.stdout != ""
+        - not uninstall_from_docker
+        - not uninstall_from_podman
+
+    # ============================================
+    # DOCKER UNINSTALLATION
+    # ============================================
+    - name: Stop CloudLens Agent container (Docker)
+      ansible.builtin.shell: docker stop {{ cloudlens_agent_container_name }}
+      when: uninstall_from_docker
       ignore_errors: yes
       register: docker_stop_result
 
@@ -65,15 +82,12 @@
       debug:
         var: docker_stop_result.stdout_lines
       when:
-        - uninstall_docker | default(false) | bool
+        - uninstall_from_docker
         - docker_stop_result is defined
 
     - name: Remove CloudLens Agent container (Docker)
       ansible.builtin.shell: docker rm -f {{ cloudlens_agent_container_name }}
-      when:
-        - uninstall_docker | default(false) | bool
-        - docker_installed.rc == 0
-        - docker_container_exists.stdout != ""
+      when: uninstall_from_docker
       ignore_errors: yes
       register: docker_remove_result
 
@@ -81,32 +95,27 @@
       debug:
         var: docker_remove_result.stdout_lines
       when:
-        - uninstall_docker | default(false) | bool
+        - uninstall_from_docker
         - docker_remove_result is defined
 
     - name: Verify container is removed (Docker)
       ansible.builtin.shell: docker ps -a --filter name={{ cloudlens_agent_container_name }} --format '{{"{{"}}.Names{{"}}"}}'
       register: docker_verify_removed
-      when:
-        - uninstall_docker | default(false) | bool
-        - docker_installed.rc == 0
+      when: uninstall_from_docker
       changed_when: false
       failed_when: docker_verify_removed.stdout != ""
 
     - name: Check if CloudLens sensor image exists (Docker)
       ansible.builtin.shell: docker images {{ cloudlens_manager_ip_or_FQDN }}/sensor --format '{{"{{"}}.Repository{{"}}"}}'
       register: docker_image_exists
-      when:
-        - uninstall_docker | default(false) | bool
-        - docker_installed.rc == 0
+      when: uninstall_from_docker
       changed_when: false
       failed_when: false
 
-    - name: Remove CloudLens sensor image if exists (Docker)
+    - name: Remove CloudLens sensor image (Docker)
       ansible.builtin.shell: docker rmi {{ cloudlens_manager_ip_or_FQDN }}/sensor:latest
       when:
-        - uninstall_docker | default(false) | bool
-        - docker_installed.rc == 0
+        - uninstall_from_docker
         - docker_image_exists.stdout != ""
       ignore_errors: yes
       register: docker_image_remove_result
@@ -115,14 +124,14 @@
       debug:
         var: docker_image_remove_result.stdout_lines
       when:
-        - uninstall_docker | default(false) | bool
+        - uninstall_from_docker
         - docker_image_remove_result is defined
 
     - name: Check if Docker daemon.json exists
       ansible.builtin.stat:
         path: /etc/docker/daemon.json
       register: daemon_json_stat
-      when: uninstall_docker | default(false) | bool
+      when: uninstall_from_docker
 
     - name: Remove insecure registry from daemon.json (Docker)
       ansible.builtin.copy:
@@ -130,48 +139,17 @@
         content: "{}"
         mode: '0644'
       when:
-        - uninstall_docker | default(false) | bool
+        - uninstall_from_docker
         - registry_type == "insecure"
         - daemon_json_stat.stat.exists
       notify: Restart Docker
 
     # ============================================
-    # PODMAN CHECKS AND UNINSTALLATION
+    # PODMAN UNINSTALLATION
     # ============================================
-    - name: Check if Podman is installed
-      ansible.builtin.command: command -v podman
-      register: podman_installed
-      failed_when: false
-      changed_when: false
-      when: uninstall_podman | default(false) | bool
-
-    - name: Display Podman installation status
-      debug:
-        msg: "Podman is {{ 'installed' if podman_installed.rc == 0 else 'not installed' }}"
-      when: uninstall_podman | default(false) | bool
-
-    - name: Check if CloudLens container exists (Podman)
-      ansible.builtin.shell: podman ps -a --filter name={{ cloudlens_agent_container_name }} --format '{{"{{"}}.Names{{"}}"}}'
-      register: podman_container_exists
-      when:
-        - uninstall_podman | default(false) | bool
-        - podman_installed.rc == 0
-      changed_when: false
-      failed_when: false
-
-    - name: Display container status (Podman)
-      debug:
-        msg: "CloudLens container {{ 'exists' if podman_container_exists.stdout != '' else 'does not exist' }}"
-      when:
-        - uninstall_podman | default(false) | bool
-        - podman_installed.rc == 0
-
-    - name: Stop CloudLens Agent container if running (Podman)
+    - name: Stop CloudLens Agent container (Podman)
       ansible.builtin.shell: podman stop {{ cloudlens_agent_container_name }}
-      when:
-        - uninstall_podman | default(false) | bool
-        - podman_installed.rc == 0
-        - podman_container_exists.stdout != ""
+      when: uninstall_from_podman
       ignore_errors: yes
       register: podman_stop_result
 
@@ -179,15 +157,12 @@
       debug:
         var: podman_stop_result.stdout_lines
       when:
-        - uninstall_podman | default(false) | bool
+        - uninstall_from_podman
         - podman_stop_result is defined
 
     - name: Remove CloudLens Agent container (Podman)
       ansible.builtin.shell: podman rm -f {{ cloudlens_agent_container_name }}
-      when:
-        - uninstall_podman | default(false) | bool
-        - podman_installed.rc == 0
-        - podman_container_exists.stdout != ""
+      when: uninstall_from_podman
       ignore_errors: yes
       register: podman_remove_result
 
@@ -195,32 +170,27 @@
       debug:
         var: podman_remove_result.stdout_lines
       when:
-        - uninstall_podman | default(false) | bool
+        - uninstall_from_podman
         - podman_remove_result is defined
 
     - name: Verify container is removed (Podman)
       ansible.builtin.shell: podman ps -a --filter name={{ cloudlens_agent_container_name }} --format '{{"{{"}}.Names{{"}}"}}'
       register: podman_verify_removed
-      when:
-        - uninstall_podman | default(false) | bool
-        - podman_installed.rc == 0
+      when: uninstall_from_podman
       changed_when: false
       failed_when: podman_verify_removed.stdout != ""
 
     - name: Check if CloudLens sensor image exists (Podman)
       ansible.builtin.shell: podman images {{ cloudlens_manager_ip_or_FQDN }}/sensor --format '{{"{{"}}.Repository{{"}}"}}'
       register: podman_image_exists
-      when:
-        - uninstall_podman | default(false) | bool
-        - podman_installed.rc == 0
+      when: uninstall_from_podman
       changed_when: false
       failed_when: false
 
-    - name: Remove CloudLens sensor image if exists (Podman)
+    - name: Remove CloudLens sensor image (Podman)
       ansible.builtin.shell: podman rmi {{ cloudlens_manager_ip_or_FQDN }}/sensor:latest
       when:
-        - uninstall_podman | default(false) | bool
-        - podman_installed.rc == 0
+        - uninstall_from_podman
         - podman_image_exists.stdout != ""
       ignore_errors: yes
       register: podman_image_remove_result
@@ -229,7 +199,7 @@
       debug:
         var: podman_image_remove_result.stdout_lines
       when:
-        - uninstall_podman | default(false) | bool
+        - uninstall_from_podman
         - podman_image_remove_result is defined
 
     - name: Remove Podman insecure registry configuration
@@ -237,7 +207,7 @@
         path: /etc/containers/registries.conf.d/cloudlens.conf
         state: absent
       when:
-        - uninstall_podman | default(false) | bool
+        - uninstall_from_podman
         - registry_type == "insecure"
 
     # ============================================
@@ -252,8 +222,7 @@
     - name: Update CA certificates on Red Hat (for secure registries)
       ansible.builtin.command: update-ca-trust extract
       when: registry_type == "secure"
-      notify:
-        - Restart Docker
+      notify: Restart Docker
 
     - name: Ensure configuration changes are applied
       meta: flush_handlers
@@ -272,16 +241,17 @@
 
     - name: Display cleanup summary
       debug:
-        msg: |
-          CloudLens Agent Cleanup Summary
-          ================================
-          Cleanup completed successfully
-          - Container: Processed
-          - Image: Processed
-          - Logs: Cleaned
-          - Temp files: Cleaned
-          
-          Note: Container runtimes were NOT removed unless explicitly requested
+        msg:
+          - "=========================================="
+          - "CloudLens Agent Cleanup Summary"
+          - "=========================================="
+          - "Removed from Docker: {{ 'Yes' if uninstall_from_docker else 'No' }}"
+          - "Removed from Podman: {{ 'Yes' if uninstall_from_podman else 'No' }}"
+          - "Logs cleaned: Yes"
+          - "Temp files cleaned: Yes"
+          - ""
+          - "Note: Container runtimes NOT removed"
+          - "To remove, set: remove_docker=true or remove_podman=true"
 
     # ============================================
     # OPTIONAL CONTAINER RUNTIME CHECKS
@@ -289,71 +259,63 @@
     - name: Check for other Docker containers
       ansible.builtin.shell: docker ps -a --format '{{"{{"}}.Names{{"}}"}}'
       register: docker_other_containers
-      when:
-        - uninstall_docker | default(false) | bool
-        - docker_installed.rc == 0
+      when: docker_check.rc == 0
       changed_when: false
       failed_when: false
 
     - name: Display other Docker containers
       debug:
-        msg: "Other Docker containers on system: {{ docker_other_containers.stdout_lines if docker_other_containers.stdout_lines | length > 0 else 'None' }}"
-      when:
-        - uninstall_docker | default(false) | bool
-        - docker_installed.rc == 0
+        msg: "Other Docker containers: {{ docker_other_containers.stdout_lines if docker_other_containers.stdout_lines | length > 0 else 'None' }}"
+      when: docker_check.rc == 0
 
     - name: Check for other Podman containers
       ansible.builtin.shell: podman ps -a --format '{{"{{"}}.Names{{"}}"}}'
       register: podman_other_containers
-      when:
-        - uninstall_podman | default(false) | bool
-        - podman_installed.rc == 0
+      when: podman_check.rc == 0
       changed_when: false
       failed_when: false
 
     - name: Display other Podman containers
       debug:
-        msg: "Other Podman containers on system: {{ podman_other_containers.stdout_lines if podman_other_containers.stdout_lines | length > 0 else 'None' }}"
-      when:
-        - uninstall_podman | default(false) | bool
-        - podman_installed.rc == 0
+        msg: "Other Podman containers: {{ podman_other_containers.stdout_lines if podman_other_containers.stdout_lines | length > 0 else 'None' }}"
+      when: podman_check.rc == 0
 
-    - name: Prompt about Docker removal
+    - name: Warning about Docker removal
       debug:
-        msg: |
-          WARNING: Docker removal is optional and NOT included by default.
-          Other containers may be using Docker: {{ docker_other_containers.stdout_lines | length if docker_other_containers is defined and docker_other_containers.stdout_lines is defined else 'unknown' }}
-          
-          To remove Docker, set variable: remove_docker=true
+        msg:
+          - "=========================================="
+          - "Docker is installed with {{ docker_other_containers.stdout_lines | length if docker_other_containers.stdout_lines is defined else 'unknown' }} containers"
+          - "To remove Docker: -e 'remove_docker=true'"
+          - "=========================================="
       when:
-        - uninstall_docker | default(false) | bool
-        - docker_installed.rc == 0
+        - docker_check.rc == 0
+        - not (remove_docker | default(false) | bool)
 
-    - name: Prompt about Podman removal
+    - name: Warning about Podman removal
       debug:
-        msg: |
-          WARNING: Podman removal is optional and NOT included by default.
-          Other containers may be using Podman: {{ podman_other_containers.stdout_lines | length if podman_other_containers is defined and podman_other_containers.stdout_lines is defined else 'unknown' }}
-          
-          To remove Podman, set variable: remove_podman=true
+        msg:
+          - "=========================================="
+          - "Podman is installed with {{ podman_other_containers.stdout_lines | length if podman_other_containers.stdout_lines is defined else 'unknown' }} containers"
+          - "To remove Podman: -e 'remove_podman=true'"
+          - "=========================================="
       when:
-        - uninstall_podman | default(false) | bool
-        - podman_installed.rc == 0
+        - podman_check.rc == 0
+        - not (remove_podman | default(false) | bool)
 
     # ============================================
     # OPTIONAL DOCKER REMOVAL
     # ============================================
-    - name: Stop Docker service (OPTIONAL - only if remove_docker=true)
+    - name: Stop Docker service (OPTIONAL)
       ansible.builtin.systemd:
         name: docker
         state: stopped
         enabled: no
       when:
         - remove_docker | default(false) | bool
-        - docker_installed.rc == 0
+        - docker_check.rc == 0
       ignore_errors: yes
 
-    - name: Remove Docker Engine (OPTIONAL - only if remove_docker=true)
+    - name: Remove Docker Engine (OPTIONAL)
       ansible.builtin.yum:
         name:
           - docker-ce
@@ -363,9 +325,9 @@
       when:
         - remove_docker | default(false) | bool
         - ansible_os_family == 'RedHat'
-        - docker_installed.rc == 0
+        - docker_check.rc == 0
 
-    - name: Remove Docker data directory (OPTIONAL - only if remove_docker=true and purge_docker_data=true)
+    - name: Remove Docker data directory (OPTIONAL)
       ansible.builtin.file:
         path: /var/lib/docker
         state: absent
@@ -373,7 +335,7 @@
         - remove_docker | default(false) | bool
         - purge_docker_data | default(false) | bool
 
-    - name: Remove Docker configuration directory (OPTIONAL - only if remove_docker=true)
+    - name: Remove Docker configuration directory (OPTIONAL)
       ansible.builtin.file:
         path: /etc/docker
         state: absent
@@ -383,7 +345,7 @@
     # ============================================
     # OPTIONAL PODMAN REMOVAL
     # ============================================
-    - name: Remove Podman on RHEL 8+ (OPTIONAL - only if remove_podman=true)
+    - name: Remove Podman on RHEL 8+ (OPTIONAL)
       ansible.builtin.dnf:
         name:
           - podman
@@ -392,9 +354,9 @@
         - remove_podman | default(false) | bool
         - ansible_os_family == 'RedHat'
         - ansible_distribution_major_version | int >= 8
-        - podman_installed.rc == 0
+        - podman_check.rc == 0
 
-    - name: Remove Podman on RHEL 7 (OPTIONAL - only if remove_podman=true)
+    - name: Remove Podman on RHEL 7 (OPTIONAL)
       ansible.builtin.yum:
         name:
           - podman
@@ -404,7 +366,7 @@
         - remove_podman | default(false) | bool
         - ansible_os_family == 'RedHat'
         - ansible_distribution_major_version | int < 8
-        - podman_installed.rc == 0
+        - podman_check.rc == 0
 
     # ============================================
     # FINAL VERIFICATION
@@ -423,7 +385,11 @@
 
     - name: Display final verification
       debug:
-        var: final_check.stdout_lines
+        msg:
+          - "=========================================="
+          - "Final Verification"
+          - "=========================================="
+          - "{{ final_check.stdout_lines }}"
 
   handlers:
     - name: Restart Docker
@@ -431,6 +397,6 @@
         name: docker
         state: restarted
       when:
-        - uninstall_docker | default(false) | bool
-        - docker_installed.rc == 0
+        - docker_check.rc == 0
+        - not (remove_docker | default(false) | bool)
       ignore_errors: yes
