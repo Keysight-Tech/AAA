@@ -1,0 +1,1 @@
+Private Ansible repository for deploying and configuring Keysight CloudLens components across cloud and hybrid environments, including AWS, GCP, Azure, VMware, Oracle Cloud (OCI), and NSX-T. Please pull and use the relevant branch corresponding to your deployment environment for streamlined automation and configuration.
