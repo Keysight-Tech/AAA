@@ -5,7 +5,7 @@ ansible_winrm_transport: ntlm
 ansible_winrm_server_cert_validation: ignore
 
 # Windows Deployment
-local_installer_path: "path_to_your_cloudlens-win-sensor-6.11.1.302.exe"
-cloudlens_installer_filename: "cloudlens-win-sensor-6.11.1.302.exe"
+local_installer_path: "path_to_your_cloudlens-win-sensor-6.13.0.359.exe"
+cloudlens_installer_filename: "cloudlens-win-sensor-6.13.0.359.exe"
 ssl_verify: "no"      # Set to "yes" if using secure SSL cert
 auto_update: "yes"
